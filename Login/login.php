@@ -6,6 +6,10 @@
     <title>GEEKERZ-Login</title>
 </head>
 <body>
-    
+    <form action="" method="post">
+        <input type="text" name="fName" id="fName" placeholder="Username: ">
+        <input type="text" name="sName" id="sName" placeholder="Password: ">
+        <button>Sign Up</button>
+    </form>
 </body>
 </html>
