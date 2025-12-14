@@ -30,6 +30,7 @@ INSERT INTO games (game_slug, display_name, scoring_type) VALUES
 ('8ball', '8 Ball Pool', 'win'),
 ('8ball_hard', '8 Ball Pool (Hard)', 'win'),
 ('tictactoe', 'Tic Tac Toe', 'win');
+('war', 'War', 'score');
 
 -- 3. LEADERBOARD TABLE (Global Stats)
 -- Stores the best score (or total wins) for every user in every game

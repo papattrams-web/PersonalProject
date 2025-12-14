@@ -11,7 +11,14 @@
 <body>
     <div class="container">
         <h1>Memory Card</h1>
+        <h2 style="color:white;">Pairs Found: <span id="mem-score">0</span></h2>
         <div class="card-space"></div>
     </div>
+
+    <script src="../js/game_manager.js"></script>
+    <script>
+        GameManager.init('memory', 'score', 'mem-score');
+    </script>
+
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 const boardDisplay= document.querySelector("#board")
 const digitsDisplay= document.querySelector("#digits")
-const scoreDisplay= document.getElementById("score")
+const scoreDisplay= document.getElementById("actual-score")
 const resultDisplay= document.getElementById("result")
 
 let solvedBoard= []

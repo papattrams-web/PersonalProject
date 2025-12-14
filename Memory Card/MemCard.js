@@ -1,6 +1,7 @@
 //Importing instead of using a new class
 import Deck from "../Cards/deck.js"
-
+let score = 0;
+const scoreEl = document.getElementById('mem-score');
 const cardSpace= document.querySelector(".card-space")
 let cardsArray= []
 let flippedCards=[]
@@ -60,6 +61,10 @@ function checkForMatch() {
     if (card1.dataset.value === card2.dataset.value) {
         // Match found: Keep them flipped and clear the tracker
         flippedCards = [];
+        
+        score++; 
+        if(scoreEl) scoreEl.innerText = score;
+
     } else {
         // No match: Flip them back after a delay
         setTimeout(() => {

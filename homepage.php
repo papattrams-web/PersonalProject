@@ -64,6 +64,17 @@
                 </div>
             </div>
 
+            <div class="game-card card-war">
+                <div class="card-image" style="background: #c0392b; color: white;">
+                    <i class="fas fa-diamond"></i>
+                </div>
+                <div class="card-content">
+                    <h3>War</h3>
+                    <p>Battle of the decks. High card wins the round.</p>
+                    <a href="Cards/cards.html" class="btn-play">Play Now</a>
+                </div>
+            </div>
+
             <div class="game-card card-8ball">
                 <div class="card-image"><i class="fas fa-dot-circle"></i></div>
                 <div class="card-content">

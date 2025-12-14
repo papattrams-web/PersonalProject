@@ -8,6 +8,14 @@
         <script src="pacman.js" ></script>
     </head>
     <body>
-         <canvas id="board"></canvas>
+        <canvas id="board"></canvas>
+
+        <script src="../js/game_manager.js"></script>
+        <script>
+            // Check your pacman.css/html, likely class is .score-display or ID score
+            // Assuming ID='score' doesn't exist, we rely on the scraping logic or add id="score" to your HTML
+            GameManager.init('pacman', 'score', 'score'); 
+        </script>
+
     </body>
 </html>

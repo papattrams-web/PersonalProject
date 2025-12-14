@@ -12,10 +12,16 @@
     <hr>
     <div class="info">
         <div id="errors">Errors <br> 0</div>
-        <div id="score">Score <br> 0</div>
+        <div id="score-container">Score <br> <span id="actual-score">0</span></div>
     </div>
     <div id="board"></div>
     <br>
     <div id="digits"></div>
+
+    <script src="../js/game_manager.js"></script>
+    <script>
+        // Init: Slug, Type, ID of the span containing the number
+        GameManager.init('sudoku', 'score', 'actual-score');
+    </script>
 </body>
 </html>

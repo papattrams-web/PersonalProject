@@ -107,6 +107,14 @@ play.addEventListener("click", clickPlay)
 function checkWin(){
     if(rowCheck() || colCheck()||diagonalCheck()){
         board.classList.add("immutable")
+        
+        // --- NEW CODE START ---
+        // Record the win to the database immediately
+        if(typeof GameManager !== 'undefined') {
+            GameManager.recordWin(); 
+        }
+        // --- NEW CODE END ---
+
         alert(`WINNER: ${winner}`)
 
         play.innerText= "Play Again"

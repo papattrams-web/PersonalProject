@@ -10,9 +10,23 @@
         <div class="computer-deck deck"></div>
         <div class="computer-card-slot card-slot"></div>
         <div class="text"></div>
-        <div class="player-deck deck"></div>
+        <div class="player-deck deck" id="player-score-box"></div>
         <div class="player-card-slot card-slot"></div>
 
+        <script src="../js/game_manager.js"></script>
+    <script>
+        // 1. We start the game immediately (GameManager handles the overlay)
+        
+        // 2. Init Manager
+        // 'war' = game slug
+        // 'score' = type
+        // null = we don't have an ID, so we use the 4th parameter for class selector
+        
+        // NOTE: GameManager currently looks for ID. We need to tweak it slightly 
+        // or just add an ID to your player deck in the HTML below.
+        
+        GameManager.init('war', 'score', 'player-score-box');
+    </script>
     </body>
 </html>
 
