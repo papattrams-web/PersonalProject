@@ -98,3 +98,28 @@ div.characters {
     cursor: not-allowed;
     color: #7f8c8d; /* Grey out used tiles if you implement that logic later */
 }
+
+.immutable {
+    cursor: not-allowed;
+    color: #7f8c8d; /* Grey out used tiles if you implement that logic later */
+}
+
+button{
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border-radius: 10px;
+    font-size: 3rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none; /* Prevents highlighting text on double click */
+}
+
+button:hover{
+    transform: scale(1.05);
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
