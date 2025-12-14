@@ -317,18 +317,33 @@ function keyDown(){
 
 function colorTiles(){
     for(let i=0; i<squares.length; i++){
-        if(squares[i].innerHTML==0)squares[i].style.backgroundColor = "whitesmoke"
-        else if(squares[i].innerHTML==2)squares[i].style.backgroundColor = "indigo"
-        else if(squares[i].innerHTML==4)squares[i].style.backgroundColor = "blue"
-        else if(squares[i].innerHTML==8)squares[i].style.backgroundColor = "green"
-        else if(squares[i].innerHTML==16)squares[i].style.backgroundColor = "yellow"
-        else if(squares[i].innerHTML==32)squares[i].style.backgroundColor = "orange"
-        else if(squares[i].innerHTML==64)squares[i].style.backgroundColor = "purple"
-        else if(squares[i].innerHTML==128)squares[i].style.backgroundColor = "grey"
-        else if(squares[i].innerHTML==256)squares[i].style.backgroundColor = "teal"
-        else if(squares[i].innerHTML==512)squares[i].style.backgroundColor = "pink"
-        else if(squares[i].innerHTML==1024)squares[i].style.backgroundColor = "black"
-        else if(squares[i].innerHTML==2048)squares[i].style.backgroundColor = "red"
+        let num = parseInt(squares[i].innerHTML);
+        
+        // Default text color (Dark Brown) for 2 and 4
+        squares[i].style.color = "#776e65"; 
+        
+        if(num === 0) {
+            squares[i].style.backgroundColor = "#cdc1b4"; // Empty tile color
+            squares[i].style.color = "transparent";       // Hide the number 0
+        }
+        else if (num === 2)    squares[i].style.backgroundColor = "#eee4da";
+        else if (num === 4)    squares[i].style.backgroundColor = "#ede0c8";
+        
+        // For 8 and above, switch text to White for better contrast
+        else if (num === 8)  { squares[i].style.backgroundColor = "#f2b179"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 16) { squares[i].style.backgroundColor = "#f59563"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 32) { squares[i].style.backgroundColor = "#f67c5f"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 64) { squares[i].style.backgroundColor = "#f65e3b"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 128){ squares[i].style.backgroundColor = "#edcf72"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 256){ squares[i].style.backgroundColor = "#edcc61"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 512){ squares[i].style.backgroundColor = "#edc850"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 1024){squares[i].style.backgroundColor = "#edc53f"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 2048){squares[i].style.backgroundColor = "#edc22e"; squares[i].style.color = "#f9f6f2"; }
+        else {
+             // Fallback for higher numbers (super dark gold)
+             squares[i].style.backgroundColor = "#3c3a32"; 
+             squares[i].style.color = "#f9f6f2";
+        }
     }
 }
 
