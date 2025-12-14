@@ -16,6 +16,7 @@
         </div>
         
         <div class="user-menu">
+            <a href="leaderboard.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
             <span>Welcome, Player1</span>
             <button class="btn-logout">Logout</button>
         </div>
