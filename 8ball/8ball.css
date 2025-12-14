@@ -1,0 +1,45 @@
+/* 1. Global Settings */
+body {
+    /* Dark, moody pool hall background */
+    background-color: #121212; 
+    background-image: radial-gradient(circle at center, #2c3e50 0%, #000000 85%);
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Prevents scrollbars if the table fits */
+}
+
+/* 2. The Game Board (Canvas) */
+#screen {
+    /* This border acts as the wooden cabinet of the pool table */
+    border: 30px solid #5d4037; /* Mahogany Brown */
+    border-radius: 20px; /* Rounded corners for the table */
+    
+    /* Lighting and Shadows */
+    box-shadow: 
+        /* Inner shadow to give depth between the wood and the felt */
+        inset 0 0 20px rgba(0,0,0,0.8),
+        /* Outer shadow to make the table look like it's standing on the floor */
+        0 30px 60px rgba(0,0,0,0.6);
+    
+    background-color: #000; /* Fallback color */
+    
+    /* Responsiveness: Ensures the table scales down if the window is small */
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    
+    /* Custom Cursor for aiming precision */
+    cursor: crosshair;
+}
+
+/* Optional: Add a subtle wood texture effect to the border using a pseudo-element 
+   (If you want it to look even more realistic without images) */
+#screen {
+    position: relative;
+    border-image-source: linear-gradient(to bottom right, #6d4c41, #3e2723);
+    border-image-slice: 1;
+}

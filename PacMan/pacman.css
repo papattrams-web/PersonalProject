@@ -1,8 +1,85 @@
-body {
-    text-align: center;
-    overflow: hidden;
+/* Import a pixel font for that retro feel */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --bg-color: #050505;       /* Deepest Black */
+  --wall-color: #0022ff;     /* Neon Blue */
+  --wall-glow: #0022ff;      /* Glow color */
+  --dot-color: #ffb897;      /* Soft Peach */
+  --pacman-yellow: #ffee00;  /* Bright Yellow */
+  --text-color: #ffffff;
 }
 
-#board {
-    background-color: black;
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  /* Retro Pixel Font */
+  font-family: 'Press Start 2P', cursive; 
+}
+
+.score-display {
+  position: absolute;
+  top: 30px;
+  font-size: 1.5rem; /* Adjusted for pixel font sizing */
+  color: var(--pacman-yellow);
+  text-shadow: 2px 2px 0px #b33a3a; /* Retro shadow */
+  letter-spacing: 2px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 560px; 
+  height: 560px;
+  /* Neon Glow Border */
+  border: 4px solid var(--wall-color);
+  box-shadow: 0 0 20px var(--wall-glow), inset 0 0 20px var(--wall-glow);
+  background-color: #000;
+}
+
+.grid div {
+  width: 20px;
+  height: 20px;
+}
+
+/* Game Elements */
+.wall {
+  background-color: var(--wall-color);
+  box-shadow: 0 0 5px var(--wall-glow); /* Slight glow on individual walls */
+  border: 1px solid #001188; /* Texture detail */
+}
+
+.pac-dot {
+  background-color: var(--dot-color);
+  border-radius: 50%;
+  width: 4px;
+  height: 4px;
+  margin: 8px;
+  box-shadow: 0 0 4px var(--dot-color);
+}
+
+.pacman {
+  background-color: var(--pacman-yellow);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--pacman-yellow);
+}
+
+.power-pellet {
+  background-color: white;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  margin: 4px;
+  box-shadow: 0 0 10px #fff;
+  animation: blink 0.3s infinite alternate;
+}
+
+@keyframes blink {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.5; transform: scale(0.8); }
 }

@@ -1,4 +1,6 @@
-/* 1. Global Reset & Fonts (Matched to TicTacToe) */
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+
+/* 1. Global Reset & Fonts */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -6,9 +8,9 @@
 }
 
 body {
-    background-color: #2c3e50; /* Dark Slate Blue */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #ecf0f1;
+    background-color: #c7ecee; /* Minty Ice */
+    font-family: 'Comic Neue', cursive;
+    color: #535c68;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -24,23 +26,23 @@ body {
 }
 
 h1 {
-    font-size: 3rem;
+    font-size: 3.5rem;
+    color: #ff7979; /* Salmon Pink */
     text-transform: uppercase;
-    letter-spacing: 3px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 0px white;
     margin: 0;
 }
 
-/* 3. The Card Board (Styled like TicTacToe .board) */
+/* 3. The Card Board */
 .card-space {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 15px; /* Spacing between cards */
-    background-color: #34495e; /* The board background */
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-    /* Remove fixed width to allow it to size by content, or max-width */
+    gap: 15px; 
+    background-color: #ffffff; /* White clean board */
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 0px #95afc0; /* Thick cartoon shadow */
     width: auto; 
 }
 
@@ -48,38 +50,43 @@ h1 {
 .card {
     height: 120px;
     width: 85px;
-    background-color: #ecf0f1;
-    border-radius: 10px;
+    background-color: #ff7979; /* Default Back Color (Salmon) */
+    border-radius: 15px;
     position: relative;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     user-select: none;
 
-    /* Card Back (Default State) */
-    background-image: url(cardDeck.jpg); /* Keep your image */
-    background-size: cover; 
-    background-position: center;
-    border: 2px solid #7f8c8d; /* Grey border matching theme */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    /* Card Back Design (Replaces Image for pure CSS theme) */
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.2),
+        rgba(255,255,255,0.2) 10px,
+        transparent 10px,
+        transparent 20px
+    );
+    
+    border: none;
+    box-shadow: 0 5px 0px #eb4d4b; /* Thick 3D edge */
 }
 
 .card:hover {
-    transform: scale(1.05); /* The signature TicTacToe hover pop */
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    z-index: 2;
+    transform: translateY(-5px); 
+    box-shadow: 0 8px 0px #eb4d4b;
 }
 
 /* 5. Flipped State */
 .card.flipped {
     background-image: none;
-    background-color: #ecf0f1; /* White tile */
+    background-color: #fff; 
     transform: rotateY(0deg); 
-    border-color: #e67e22; /* Orange border for active cards */
+    border: 3px solid #badc58; /* Lime Green Border */
+    box-shadow: 0 5px 0px #6ab04c;
 }
 
-/* Suit Colors */
+/* Suit Colors (If you have numbers/suits inside) */
 .card.black.flipped { color: #2c3e50; }
-.card.red.flipped { color: #c0392b; }
+.card.red.flipped { color: #e056fd; } /* Purple for Red suits for candy vibe */
 
 /* Corner Values */
 .card::before, 
@@ -91,7 +98,7 @@ h1 {
 .card.flipped::before,
 .card.flipped::after {
     display: block;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: bold;
     position: absolute;
 }

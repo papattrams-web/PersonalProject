@@ -164,14 +164,16 @@ function draw() {
         context.fillRect(food.x, food.y, food.width, food.height);
     }
 
-    //score
-    context.fillStyle = "white";
-    context.font="14px sans-serif";
+    // UPDATED: Theme Fonts and Colors
+    context.fillStyle = "#ecf0f1"; // Off-white text
+    context.font = "20px 'Segoe UI', sans-serif"; // Theme font
+    
     if (gameOver) {
-        context.fillText("Game Over: " + String(score), tileSize/2, tileSize/2);
+        context.fillStyle = "#e74c3c"; // Red for Game Over
+        context.fillText("GAME OVER: " + String(score), tileSize/2, tileSize);
     }
     else {
-        context.fillText("x" + String(lives) + " " + String(score), tileSize/2, tileSize/2);
+        context.fillText("LIVES: " + String(lives) + "   SCORE: " + String(score), tileSize/2, tileSize);
     }
 }
 

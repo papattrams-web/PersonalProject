@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;700&display=swap');
+
 /* 1. Global Reset & Fonts */
 *, *::after, *::before {
     box-sizing: border-box;
@@ -6,38 +8,32 @@
 }
 
 body {
-    background-color: #2c3e50; /* Dark Slate Blue */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #ecf0f1;
-    height: 100vh;
-    overflow: hidden; /* Prevent scrolling */
+    background-color: #1e3a28; /* Deep Poker Table Green */
+    /* Subtle felt texture pattern */
+    background-image: radial-gradient(#264a33 20%, transparent 20%),
+                      radial-gradient(#264a33 20%, transparent 20%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
     
-    /* THE LAYOUT GRID */
+    font-family: 'Roboto', sans-serif;
+    color: #f1c40f; /* Gold text */
+    height: 100vh;
+    overflow: hidden;
+    
     display: grid;
-    /* Two Columns: Left for Deck, Right for Active Card */
     grid-template-columns: 120px 120px; 
-    /* Three Rows: Computer, Status Text, Player */
     grid-template-rows: 1fr 100px 1fr;
     gap: 20px;
     justify-content: center;
     align-content: center;
     
-    /* Map the HTML elements to specific spots */
     grid-template-areas:
         "comp-deck comp-slot"
         "status    status"
         "play-deck play-slot";
 }
 
-/* 2. Assigning HTML Elements to Grid Areas */
-/* Note: Based on your HTML order: 
-   1. computer-deck 
-   2. computer-card-slot 
-   3. text 
-   4. player-deck 
-   5. player-card-slot 
-*/
-
+/* 2. Assigning HTML Elements */
 .computer-deck { grid-area: comp-deck; }
 .computer-card-slot { grid-area: comp-slot; }
 .text { grid-area: status; }
@@ -45,53 +41,51 @@ body {
 .player-card-slot { grid-area: play-slot; }
 
 
-/* 3. Deck Styling (The Stacks) */
+/* 3. Deck Styling */
 .deck {
     height: 160px;
     width: 110px;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: bold;
-    color: #ecf0f1;
     cursor: pointer;
     transition: transform 0.2s ease;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
-    border: 4px solid #fff;
     
-    /* Pattern for back of cards */
-    background-color: #34495e;
-    background-image: repeating-linear-gradient(
-        45deg,
-        #34495e,
-        #34495e 10px,
-        #2c3e50 10px,
-        #2c3e50 20px
-    );
+    /* Casino Card Back Pattern */
+    background-color: #b71540; /* Deep Red */
+    background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
+    background-size: 10px 10px;
+    
+    border: 4px solid #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .deck:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.4);
 }
 
-/* Differentiate decks slightly */
-.computer-deck { border-color: #c0392b; color: #c0392b; background-color: #2c3e50; } /* Red border */
-.player-deck { border-color: #27ae60; color: #27ae60; background-color: #2c3e50; }   /* Green border */
+/* Distinct borders */
+.computer-deck { border: 2px solid #e74c3c; } 
+.player-deck { border: 2px solid #2ecc71; }   
 
 
-/* 4. Card Slot Styling (The empty drop zone) */
+/* 4. Card Slot Styling */
 .card-slot {
     height: 160px;
     width: 110px;
-    border: 3px dashed #7f8c8d;
-    border-radius: 10px;
+    border: 2px dashed rgba(241, 196, 15, 0.3); /* Faint gold dash */
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative; /* To hold the card inside */
+    background-color: rgba(0,0,0,0.1); /* Darken the slot slightly */
+    position: relative; 
 }
 
 /* 5. Status Text */
@@ -99,33 +93,30 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    color: #e67e22; /* Carrot Orange */
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    font-family: 'Playfair Display', serif; /* Elegant font */
+    font-size: 2.5rem;
+    color: #f1c40f; /* Gold */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-/* 6. The Actual Card (Revealed) */
-/* This matches the TicTacToe/MemCard tile look */
+/* 6. The Revealed Card */
 .card {
     height: 100%;
     width: 100%;
     border-radius: 8px;
-    background-color: #ecf0f1;
+    background-color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3rem;
+    font-size: 3.5rem;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    font-family: 'Playfair Display', serif;
     
-    /* Animation */
-    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.card.black { color: #2c3e50; }
+.card.black { color: #2d3436; }
 .card.red { color: #c0392b; }
 
 .card::before, 
@@ -133,13 +124,13 @@ body {
     content: attr(data-value);
     font-size: 1rem;
     position: absolute;
-    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
 }
 
 .card::before { top: 5px; left: 5px; }
 .card::after { bottom: 5px; right: 5px; transform: rotate(180deg); }
 
-@keyframes popIn {
-    from { transform: scale(0.5); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
