@@ -1,68 +1,107 @@
-body{
-    background-color: bisque;
-    font-family: 'Clear Sans', Helvetica;
+/* Import Clear Sans to match the original game perfectly */
+@import url('https://fonts.googleapis.com/css2?family=Clear+Sans:wght@400;500;700&display=swap');
+
+body {
+    background-color: #faf8ef; /* Warm beige background */
+    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    color: #776e65; /* Dark brown text */
     display: flex;
     justify-content: center;
+    margin: 0;
+    padding-bottom: 50px;
 }
 
-h1{
-    line-height: 0.7;
+h1 {
     font-size: 80px;
-    margin: 0;   
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+    color: #776e65;
 }
 
-.container{
+.container {
     margin-top: 50px;
     width: 500px;
-}
-
-.info{
-    margin-bottom: 50px;
     display: flex;
-    width: 500px;
-    justify-content: space-between;
-    text-align: center;
+    flex-direction: column;
     align-items: center;
 }
 
-.score-container{
-    color: whitesmoke;
+.info {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* Score Box Styling */
+.score-container {
+    background-color: #bbada0; /* Darker beige for UI elements */
+    color: #f9f6f2; /* Off-white text */
     text-align: center;
-    width: 150px;
-    height: 100px;
-    background-color: brown;
-    border-radius: 10px;
-    margin-top: 15px;
+    min-width: 120px; /* Allow expansion */
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.score-title{
-    font-size: 20px;
+.score-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #eee4da;
+    margin-bottom: 5px;
 }
 
-#score{
-    font-size: 50px;
+#score {
+    font-size: 25px;
+    font-weight: bold;
+    color: white;
 }
 
-.grid{
+/* The Grid Board */
+.grid {
     width: 500px;
     height: 500px;
-    background-color: antiquewhite;
-    border: 7px solid antiquewhite;
-    border-radius: 10px;
+    background-color: #bbada0; /* The board background color */
+    border-radius: 6px;
     margin-top: 20px;
+    
     display: grid;
+    /* Use gap instead of borders for cleaner spacing */
     grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 15px;
+    padding: 15px; /* Padding around the edges */
+    box-sizing: border-box; /* Ensures padding doesn't stretch width */
 }
 
-.grid div{
-    width: 115px;
-    height: 115px;
-    background-color: rgba(165, 42, 42, 0.505);
-    color: whitesmoke;
+/* The Tiles (Cells) */
+.grid div {
+    width: 100%; /* Fills the grid cell */
+    height: 100%;
+    background-color: #cdc1b4; /* Default empty tile color */
+    color: #776e65; /* Text color for numbers 2 & 4 */
+    
     font-weight: bold;
     text-align: center;
-    font-size: 70px;
-    line-height: 1.6;
-    border: 10px solid burlywood;
-    border-radius: 5px ;
+    font-size: 55px;
+    
+    /* Center the number perfectly */
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    
+    border-radius: 3px;
+    border: none; /* Removed the thick burlywood border for a cleaner look */
+    
+    transition: all 0.1s ease-in-out;
 }
+
+/* Optional: If your JS adds classes for numbers, you can add colors here.
+   Otherwise, this default style looks like the "2" tile. */
