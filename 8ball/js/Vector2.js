@@ -31,3 +31,8 @@ Vector2.prototype.length= function(){
 Vector2.prototype.dot= function(vector){
    return this.x * vector.x + this.y * vector.y
 }
+
+// Add to Vector2.js
+Vector2.prototype.dist = function(vector){
+    return this.subtract(vector).length();
+};
