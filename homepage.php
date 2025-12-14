@@ -33,7 +33,7 @@
                 <div class="card-content">
                     <h3>2048</h3>
                     <p>Join the numbers and get to the 2048 tile!</p>
-                    <a href="#" class="btn-play">Play Now</a>
+                    <a href="./2048/2048.html" class="btn-play">Play Now</a>
                 </div>
             </div>
 
@@ -42,7 +42,7 @@
                 <div class="card-content">
                     <h3>PacMan</h3>
                     <p>Eat the dots, avoid the ghosts. Retro classic.</p>
-                    <a href="#" class="btn-play">Play Now</a>
+                    <a href="./PacMan/PacMan.html" class="btn-play">Play Now</a>
                 </div>
             </div>
 
@@ -51,7 +51,7 @@
                 <div class="card-content">
                     <h3>Sudoku</h3>
                     <p>Fill the grid with logic. Zen mode enabled.</p>
-                    <a href="#" class="btn-play">Play Now</a>
+                    <a href="./Sudoku/sudoku.html" class="btn-play">Play Now</a>
                 </div>
             </div>
 
@@ -60,7 +60,7 @@
                 <div class="card-content">
                     <h3>Memory</h3>
                     <p>Test your brain power. Match the cards.</p>
-                    <a href="#" class="btn-play">Play Now</a>
+                    <a href="./Memory Card/MemCard.html" class="btn-play">Play Now</a>
                 </div>
             </div>
 
@@ -69,7 +69,7 @@
                 <div class="card-content">
                     <h3>8 Ball Pool</h3>
                     <p>Pot the balls and beat the table.</p>
-                    <a href="#" class="btn-play">Play Now</a>
+                    <a href="./8ball/8ball.html" class="btn-play">Play Now</a>
                 </div>
             </div>
 
@@ -78,7 +78,7 @@
                 <div class="card-content">
                     <h3>Tic Tac Toe</h3>
                     <p>The classic X and O game. Can you win?</p>
-                    <a href="#" class="btn-play">Play Now</a>
+                    <a href="./TicTacToe/TicTacToe.html" class="btn-play">Play Now</a>
                 </div>
             </div>
 
