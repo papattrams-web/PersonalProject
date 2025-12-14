@@ -24,12 +24,22 @@ body {
     min-height: 100vh;
 }
 
+/* --- GREMLIN MASCOT --- */
+.gremlin-logo {
+    display: block;
+    margin: 0 auto 20px auto; /* Centers image and adds space below */
+    width: 100px; /* Adjust size as needed */
+    height: auto;
+    filter: drop-shadow(0 0 10px var(--accent-color)); /* Neon glow effect */
+}
+
 /* --- AUTH PAGES (Login/Signup) --- */
 .auth-body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh; /* Changed to min-height for safety on small screens */
+    padding: 20px;
 }
 
 .auth-container {
@@ -38,7 +48,7 @@ body {
     padding: 3rem;
     border-radius: 20px;
     border: 1px solid var(--border-color);
-    width: 400px;
+    width: 450px; /* Slightly wider to accommodate side-by-side inputs */
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     text-align: center;
 }
@@ -51,10 +61,23 @@ body {
     letter-spacing: 2px;
 }
 
+/* --- FORM LAYOUTS --- */
 .form-group {
     margin-bottom: 1rem;
     text-align: left;
 }
+
+/* NEW: Layout for Side-by-Side inputs */
+.form-row {
+    display: flex;
+    gap: 15px; /* Space between the two boxes */
+}
+
+.form-row .form-group {
+    flex: 1; /* Makes them share width equally */
+    margin-bottom: 0; /* Remove bottom margin inside the row wrapper */
+}
+/* End New Layout */
 
 .form-group input {
     width: 100%;
@@ -85,7 +108,7 @@ body {
     cursor: pointer;
     transition: 0.3s;
     text-transform: uppercase;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .btn-primary:hover {
@@ -106,17 +129,28 @@ body {
     font-weight: bold;
 }
 
-/* --- HOMEPAGE --- */
+/* --- HOMEPAGE SPECIFIC --- */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 50px;
+    padding: 15px 50px;
     background: rgba(0,0,0,0.2);
     border-bottom: 1px solid var(--border-color);
 }
 
-.logo {
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-brand .gremlin-logo {
+    width: 50px; /* Smaller icon for navbar */
+    margin: 0; /* Reset margin for nav */
+}
+
+.logo-text {
     font-size: 1.8rem;
     font-weight: 700;
     color: var(--accent-color);
@@ -190,7 +224,7 @@ body {
 
 .card-image {
     height: 150px;
-    background-color: #2d3436; /* Placeholder color */
+    background-color: #2d3436;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -232,7 +266,7 @@ body {
     background: var(--accent-hover);
 }
 
-/* Specific Card Colors for placeholders */
+/* Specific Card Colors */
 .card-2048 .card-image { background: #edc22e; color: #fff; }
 .card-pacman .card-image { background: #000; color: #ffee00; border-bottom: 2px solid blue; }
 .card-sudoku .card-image { background: #fff; color: #2c3e50; }

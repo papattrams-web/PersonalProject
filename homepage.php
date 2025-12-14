@@ -1,42 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GEEKERZ // Home</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geekerz - Dashboard</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <main>
-        <section class="card-grid">
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="./Images/gremlin.png" alt="Gremlin" class="gremlin-logo">
+            <span class="logo-text">GEEKERZ</span>
+        </div>
+        
+        <div class="user-menu">
+            <span>Welcome, Player1</span>
+            <button class="btn-logout">Logout</button>
+        </div>
+    </nav>
 
-            <a href="/games/memory" class="game-card">
-            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba" />
-            <div class="card-content">
-                <h2>Memory Match</h2>
-                <span>Logic · Turn-Based</span>
+    <div class="hero">
+        <h1>Game Library</h1>
+        <p>Select a game to start playing</p>
+    </div>
+
+    <div class="container">
+        <div class="games-grid">
+            <div class="game-card card-2048">
+                <div class="card-image">2048</div>
+                <div class="card-content">
+                    <h3>2048</h3>
+                    <p>Join the numbers and get to the 2048 tile!</p>
+                    <a href="#" class="btn-play">Play Now</a>
+                </div>
             </div>
-            </a>
 
-            <a href="/games/tictac" class="game-card featured">
-            <img src="https://images.unsplash.com/photo-1520975922284-8c8f3f22f52a" />
-            <div class="card-content">
-                <h2>PLAY</h2>
-                <span>TicTac Neo</span>
+            <div class="game-card card-pacman">
+                <div class="card-image"><i class="fas fa-ghost"></i></div>
+                <div class="card-content">
+                    <h3>PacMan</h3>
+                    <p>Eat the dots, avoid the ghosts. Retro classic.</p>
+                    <a href="#" class="btn-play">Play Now</a>
+                </div>
             </div>
-            </a>
 
-            <a href="/games/2048" class="game-card">
-            <img src="https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.ketchapp.play2048%26hl%3Den_GB&ved=0CBUQjRxqFwoTCJj1qvmvupEDFQAAAAAdAAAAABAI&opi=89978449" />
-            <div class="card-content">
-                <h2>2048 Sync</h2>
-                <span>Score Challenge</span>
+            <div class="game-card card-sudoku">
+                <div class="card-image"><i class="fas fa-border-all"></i></div>
+                <div class="card-content">
+                    <h3>Sudoku</h3>
+                    <p>Fill the grid with logic. Zen mode enabled.</p>
+                    <a href="#" class="btn-play">Play Now</a>
+                </div>
             </div>
-            </a>
 
-        </section>
-    </main>
+            <div class="game-card card-memory">
+                <div class="card-image"><i class="fas fa-layer-group"></i></div>
+                <div class="card-content">
+                    <h3>Memory</h3>
+                    <p>Test your brain power. Match the cards.</p>
+                    <a href="#" class="btn-play">Play Now</a>
+                </div>
+            </div>
+
+            <div class="game-card card-8ball">
+                <div class="card-image"><i class="fas fa-dot-circle"></i></div>
+                <div class="card-content">
+                    <h3>8 Ball Pool</h3>
+                    <p>Pot the balls and beat the table.</p>
+                    <a href="#" class="btn-play">Play Now</a>
+                </div>
+            </div>
+
+            <div class="game-card card-tictac">
+                <div class="card-image"><i class="fas fa-times"></i></div>
+                <div class="card-content">
+                    <h3>Tic Tac Toe</h3>
+                    <p>The classic X and O game. Can you win?</p>
+                    <a href="#" class="btn-play">Play Now</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
 </body>
 </html>
