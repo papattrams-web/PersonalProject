@@ -315,30 +315,59 @@ function keyDown(){
     }
 }
 
-function colorTiles(){
-    for(let i=0; i<squares.length; i++){
+function colorTiles() {
+    for (let i = 0; i < squares.length; i++) {
         let num = parseInt(squares[i].innerHTML);
         
-        // Default text color (Dark Brown) for 2 and 4
-        squares[i].style.color = "#776e65"; 
-        
-        if(num === 0) {
-            squares[i].style.backgroundColor = "#cdc1b4"; // Empty tile color
-            squares[i].style.color = "transparent";       // Hide the number 0
+        // Default text style (White text with a subtle shadow for better readability)
+        squares[i].style.color = "white"; 
+        squares[i].style.textShadow = "0px 1px 1px rgba(0,0,0,0.3)"; 
+
+        if (num === 0) {
+            squares[i].style.backgroundColor = "#cdc1b4"; // Matches grid background
+            squares[i].style.color = "transparent";       // Hide the 0
+            squares[i].style.textShadow = "none";
+        } 
+        else if (num === 2) {
+            squares[i].style.backgroundColor = "#6c5ce7"; // Indigo (Modern)
+            // 2 and 4 usually look better with dark text on light backgrounds, 
+            // but for Indigo/Blue, white text works if the color is deep enough.
         }
-        else if (num === 2)    squares[i].style.backgroundColor = "#eee4da";
-        else if (num === 4)    squares[i].style.backgroundColor = "#ede0c8";
-        
-        // For 8 and above, switch text to White for better contrast
-        else if (num === 8)  { squares[i].style.backgroundColor = "#f2b179"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 16) { squares[i].style.backgroundColor = "#f59563"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 32) { squares[i].style.backgroundColor = "#f67c5f"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 64) { squares[i].style.backgroundColor = "#f65e3b"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 128){ squares[i].style.backgroundColor = "#edcf72"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 256){ squares[i].style.backgroundColor = "#edcc61"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 512){ squares[i].style.backgroundColor = "#edc850"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 1024){squares[i].style.backgroundColor = "#edc53f"; squares[i].style.color = "#f9f6f2"; }
-        else if (num === 2048){squares[i].style.backgroundColor = "#edc22e"; squares[i].style.color = "#f9f6f2"; }
+        else if (num === 4) {
+            squares[i].style.backgroundColor = "#0984e3"; // Blue (Bright & Clear)
+        } 
+        else if (num === 8) {
+            squares[i].style.backgroundColor = "#00b894"; // Green (Teal-ish Green)
+        }
+        else if (num === 16) {
+            squares[i].style.backgroundColor = "#fdcb6e"; // Yellow (Mustard)
+            squares[i].style.color = "#2d3436";           // Dark text for contrast on yellow
+            squares[i].style.textShadow = "none";
+        }
+        else if (num === 32) {
+            squares[i].style.backgroundColor = "#e17055"; // Orange (Burnt Orange)
+        }
+        else if (num === 64) {
+            squares[i].style.backgroundColor = "#d63031"; // Red/Purple mix
+        }
+        else if (num === 128) {
+            squares[i].style.backgroundColor = "#636e72"; // Grey (Slate)
+        }
+        else if (num === 256) {
+            squares[i].style.backgroundColor = "#00cec9"; // Teal (Aqua)
+        }
+        else if (num === 512) {
+            squares[i].style.backgroundColor = "#e84393"; // Pink (Dark Raspberry)
+        }
+        else if (num === 1024) {
+            squares[i].style.backgroundColor = "#2d3436"; // Black (Charcoal)
+        }
+        else if (num === 2048) {
+            squares[i].style.backgroundColor = "#fab1a0"; // Gold/Special Color
+            squares[i].style.boxShadow = "0 0 10px #fab1a0"; // Glowing effect for the win tile
+            squares[i].style.color = "#2d3436"; 
+            squares[i].style.textShadow = "none";
+        }
         else {
              // Fallback for higher numbers (super dark gold)
              squares[i].style.backgroundColor = "#3c3a32"; 
