@@ -1,12 +1,13 @@
-const BALL_DIAMETER= 38
-const BALL_RADIUS= BALL_DIAMETER/2
-const BALL_ORIGIN= new Vector2(25, 25)
+const BALL_DIAMETER= 38;
+const BALL_RADIUS= BALL_DIAMETER/2;
+const BALL_ORIGIN= new Vector2(25, 25);
 
 function Ball(position, color){
-    this.position= position
-    this.velocity= new Vector2()
-    this.moving= false
-    this.sprite= getBallSpriteByColor(color)
+    this.position= position;
+    this.velocity= new Vector2();
+    this.moving= false;
+    this.color = color; // <--- STORE THIS
+    this.sprite= getBallSpriteByColor(color);
 }
 
 Ball.prototype.update= function(delta){
