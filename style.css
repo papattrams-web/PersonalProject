@@ -1,0 +1,116 @@
+:root{
+    --bg:#0a0b0f;
+    --card-bg:#111218;
+    --text:#f3f4f8;
+    --muted:#a0a4b8;
+    --accent:#6cf2c2;
+    --radius:22px;
+}
+
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:radial-gradient(1000px 600px at 50% -20%, bisque 0%, transparent 60%), var(--bg);
+    font-family: "Playfair Display", Georgia, serif;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+main{
+    width:100%;
+    max-width:1200px;
+    padding:64px 32px;
+}
+
+/* ---------- GRID ---------- */
+.card-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:56px;
+}
+
+/* ---------- CARD ---------- */
+.game-card{
+    position:relative;
+    background:var(--card-bg);
+    border-radius:var(--radius);
+    overflow:hidden;
+    cursor:pointer;
+    text-decoration:none;
+    color:inherit;
+    box-shadow:0 40px 80px rgba(0,0,0,.55);
+    transition:.5s cubic-bezier(.16,.84,.44,1);
+}
+
+.game-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.75));
+    opacity:.9;
+}
+
+.game-card img{
+    width:100%;
+    height:420px;
+    object-fit:cover;
+    filter:grayscale(100%) contrast(1.1);
+    transition:.6s ease;
+}
+
+.game-card:hover img{
+    transform:scale(1.05);
+    filter:grayscale(0%) contrast(1.15);
+}
+
+.game-card:hover{
+    transform:translateY(-12px);
+}
+
+/* ---------- TEXT ---------- */
+.card-content{
+    position:absolute;
+    inset:auto 0 0 0;
+    padding:28px;
+    z-index:2;
+    text-align:center;
+}
+
+.card-content h2{
+    margin:0 0 6px;
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:.4px;
+}
+
+.card-content span{
+    display:block;
+    font-style:italic;
+    font-size:18px;
+    color:var(--muted);
+}
+
+/* ---------- CENTER CARD ---------- */
+.game-card.featured .card-content h2{
+    font-size:42px;
+    letter-spacing:4px;
+}
+
+.game-card.featured::before{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    border-radius:inherit;
+    background:linear-gradient(135deg, transparent 30%, var(--accent), transparent 70%);
+    opacity:.25;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:900px){
+    .card-grid{grid-template-columns:1fr;gap:40px}
+    .game-card img{height:360px}
+}

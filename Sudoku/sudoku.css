@@ -1,0 +1,71 @@
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+hr{
+    width: 500px;
+}
+
+#errors{
+    color: coral;
+}
+
+#board{
+    width: 630px;
+    height: 630px;
+
+    background-color: whitesmoke  ;
+
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(9, 3fr);
+}
+
+.info{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 200px;
+
+}
+
+.tile{
+    width: 64px;
+    height: 64px;
+    border: 1px solid black;
+
+    margin: 2px;
+
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#digits{
+    width: 630px;
+    height: 70px;
+    
+    background-color: whitesmoke;
+    
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    
+}
+
+.number-selected{
+    background-color: bisque;
+}
+
+.immutable {
+    pointer-events: none;
+    color: blue;
+}
+
+.box1, .box2, .box3 { background-color: #FFFAE3; }  /* soft cream */
+.box4, .box5, .box6 { background-color: #E3F6FF; }  /* light sky blue */
+.box7, .box8, .box9 { background-color: #FFF0F5; }  /* soft pink/lavender */
