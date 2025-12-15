@@ -10,15 +10,21 @@ if (!isset($_SESSION['user_id'])) {
 
 $my_id = $_SESSION['user_id'];
 
-// Fetch Pending Challenges
-// We join 'users' to get the challenger's name and 'games' to get the game name
+// 1. Fetch Pending Challenges (Where I am Player 2)
 $inboxSql = "SELECT m.id as match_id, u.username as challenger, g.display_name, g.game_slug
              FROM matches m
              JOIN users u ON m.player1_id = u.id
              JOIN games g ON m.game_id = g.id
              WHERE m.player2_id = '$my_id' AND m.status = 'pending'";
-
 $inboxResult = $conn->query($inboxSql);
+
+// 2. Fetch "Your Turn" Matches (Where I am Player 1 and P2 has finished)
+$turnSql = "SELECT m.id as match_id, u.username as opponent, g.display_name, g.game_slug, m.player2_score
+            FROM matches m
+            JOIN users u ON m.player2_id = u.id
+            JOIN games g ON m.game_id = g.id
+            WHERE m.player1_id = '$my_id' AND m.status = 'waiting_p1'";
+$turnResult = $conn->query($turnSql);
 ?>
 
 <!DOCTYPE html>
@@ -41,6 +47,7 @@ $inboxResult = $conn->query($inboxSql);
         <div class="user-menu">
             <a href="lobby.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Find Players</a>
             <a href="leaderboard.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
+            <a href="history_page.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">History</a>
             <span style="margin-right: 15px; font-weight: 500;">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
             <button class="btn-logout">Logout</button>
         </div>
@@ -69,6 +76,26 @@ $inboxResult = $conn->query($inboxSql);
                             Decline
                             </a>
                         </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        <?php if ($turnResult->num_rows > 0): ?>
+        <div class="container" style="margin-bottom: 20px;">
+            <div style="background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; padding: 20px; border-radius: 15px;">
+                <h3 style="color: #2ecc71; margin-bottom: 15px;"><i class="fas fa-play-circle"></i> It's Your Turn!</h3>
+                
+                <?php while($row = $turnResult->fetch_assoc()): ?>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: white; font-size: 1.1rem;">
+                            <strong><?php echo htmlspecialchars($row['opponent']); ?></strong> scored <strong><?php echo $row['player2_score']; ?></strong> in <?php echo htmlspecialchars($row['display_name']); ?>. Can you beat them?
+                        </span>
+                        
+                        <a href="includes/handle_challenge.php?action=accept&id=<?php echo $row['match_id']; ?>&game=<?php echo $row['game_slug']; ?>" 
+                        style="background: #2ecc71; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                        Play Now
+                        </a>
                     </div>
                 <?php endwhile; ?>
             </div>

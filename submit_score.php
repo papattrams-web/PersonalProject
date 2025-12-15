@@ -26,30 +26,48 @@ if ($gameResult->num_rows > 0) {
     $game_id = $gameRow['id'];
 
     // --- LOGIC A: RANKED MATCH UPDATE ---
+    // --- LOGIC A: RANKED MATCH UPDATE ---
     if ($match_id) {
         // Verify user is part of this match
-        $checkMatch = "SELECT player1_id, player2_id FROM matches WHERE id = '$match_id'";
+        $checkMatch = "SELECT * FROM matches WHERE id = '$match_id'";
         $mResult = $conn->query($checkMatch);
         
         if($mResult->num_rows > 0) {
             $matchData = $mResult->fetch_assoc();
+            $status = $matchData['status'];
             
-            if ($type === 'win') {
-                // For Win/Loss games (8Ball/TicTacToe), if this runs, THIS user won.
-                // We mark the match completed and set the winner.
-                $updateSql = "UPDATE matches SET winner_id = '$user_id', status = 'completed' WHERE id = '$match_id'";
+            // CASE 1: Opponent (Player 2) just finished playing
+            if ($user_id == $matchData['player2_id']) {
+                $new_score = ($type === 'win') ? 1 : $score; // 1 for win, or actual score
+                
+                // Update P2 score and set status so P1 knows it's their turn
+                $updateSql = "UPDATE matches SET player2_score = '$new_score', status = 'waiting_p1' WHERE id = '$match_id'";
                 $conn->query($updateSql);
-            } else {
-                // For Score games (2048), update the specific player's score
-                if($user_id == $matchData['player1_id']) {
-                    $updateSql = "UPDATE matches SET player1_score = '$score' WHERE id = '$match_id'";
-                } elseif($user_id == $matchData['player2_id']) {
-                    $updateSql = "UPDATE matches SET player2_score = '$score' WHERE id = '$match_id'";
+            } 
+            
+            // CASE 2: Challenger (Player 1) just finished playing
+            elseif ($user_id == $matchData['player1_id']) {
+                $p1_score = ($type === 'win') ? 1 : $score;
+                $p2_score = $matchData['player2_score'];
+                
+                // Determine Winner
+                $winner_id = "NULL"; // Default Draw
+                if ($p1_score > $p2_score) {
+                    $winner_id = $matchData['player1_id'];
+                } elseif ($p2_score > $p1_score) {
+                    $winner_id = $matchData['player2_id'];
                 }
+                
+                // Update P1 score, set Winner, Mark Completed
+                $updateSql = "UPDATE matches SET player1_score = '$p1_score', winner_id = $winner_id, status = 'completed' WHERE id = '$match_id'";
                 $conn->query($updateSql);
                 
-                // Note: We leave status 'active'. You can write logic to close it 
-                // when both scores are > 0 if you want.
+                // Update Winner's Global Win Count (for Leaderboard)
+                if($winner_id !== "NULL") {
+                    $winSql = "INSERT INTO leaderboard (user_id, game_id, highscore) VALUES ('$winner_id', '$game_id', 1) 
+                               ON DUPLICATE KEY UPDATE highscore = highscore + 1";
+                    $conn->query($winSql);
+                }
             }
         }
     }
