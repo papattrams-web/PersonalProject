@@ -198,47 +198,42 @@ function submitTurn() {
 }
 
 // --- 7. GAME OVER ---
+// --- 7. GAME OVER ---
 function endGame() {
     let p1 = gameState.scores.p1;
     let p2 = gameState.scores.p2;
-    let winnerRole = null;
+    
+    // 1. Calculate the result for the database
+    // score: 1 (Win), -1 (Loss), 0 (Draw)
+    let myResult = 0;
 
-    if (p1 > p2) winnerRole = 'P1';
-    else if (p2 > p1) winnerRole = 'P2';
-    
-    // Determine DB Winner ID
-    // Note: We don't have user IDs here, so we send the result type to PHP
-    // PHP will compare scores if we send them, or we can just send who won.
-    
-    let resultType = 'turn_update'; // Default
-    let myScore = (myRole === 'P1') ? p1 : p2;
-    
-    // If there is a winner, we submit a 'win' type for the winner
-    // Ideally, the last player calculates this.
+    if (myRole === 'P1') {
+        if (p1 > p2) myResult = 1;       // I won
+        else if (p2 > p1) myResult = -1; // I lost
+    } else {
+        if (p2 > p1) myResult = 1;       // I won
+        else if (p1 > p2) myResult = -1; // I lost
+    }
     
     let msg = `GAME OVER!\nScore: P1(${p1}) - P2(${p2})`;
+    if (myResult === 1) msg += "\nVICTORY!";
+    else if (myResult === -1) msg += "\nDEFEAT!";
+    else msg += "\nDRAW!";
+    
     alert(msg);
 
-    // We send the final state. The Backend logic in submit_score.php 
-    // actually calculates the winner based on scores if type is 'score' or logic is custom.
-    // For simplicity with your current backend, let's just save the state one last time.
-    
-    // However, to trigger the 'completed' status in DB:
-    // We need one player to trigger the 'win' logic.
-    
+    // 2. Send 'win' type to force status='completed' in DB
     fetch('../submit_score.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             game: 'tictactoe',
-            type: 'turn_update', // Just save the final board for history
+            type: 'win', // <--- CHANGED from 'turn_update'
             match_id: MATCH_ID,
-            score: myScore,
-            board_state: JSON.stringify(gameState)
+            score: myResult
         })
     }).then(() => {
-        // To officially close the match, we might need a specific flag or 
-        // rely on a separate 'end_game' call, but for now, redirect to history.
+        // Redirect to history to see the final result
         window.location.href = "../history_page.php"; 
     });
 }

@@ -42,6 +42,60 @@ try {
             exit(); 
         }
 
+        // [INSERT THIS BLOCK BETWEEN 'turn_update' AND 'win/loss' BLOCKS]
+
+        // 3. HANDLE STANDARD SCORING (Sudoku, 2048, PacMan)
+        if ($type === 'score') {
+            
+            // 1. Handle Board State (Whoever plays first sets the board)
+            $extra_sql = "";
+            if (isset($data['board_state'])) {
+                $b_state = $conn->real_escape_string($data['board_state']);
+                // Only save board state if it's sent
+                $extra_sql = ", board_state = '$b_state'";
+            }
+
+            // 2. Identify Who Is Playing
+            $is_p1 = ($user_id == $matchData['player1_id']);
+            $my_score_col = $is_p1 ? "player1_score" : "player2_score";
+            
+            // 3. Check Match Status to decide next step
+            // IF match is 'active' (or pending), it means I am the FIRST to finish.
+            if ($matchData['status'] == 'active' || $matchData['status'] == 'pending') {
+                $newStatus = $is_p1 ? 'waiting_p2' : 'waiting_p1';
+                
+                // Save my score, save the board, and set status to wait for opponent
+                $conn->query("UPDATE matches SET $my_score_col = $score, status = '$newStatus' $extra_sql WHERE id = '$match_id'");
+            } 
+            
+            // IF match is 'waiting_p1' or 'waiting_p2', it means the OTHER player already finished.
+            else {
+                // I am the SECOND to finish. Logic to End the Game.
+                
+                // Get the scores
+                $p1_score = $is_p1 ? $score : $matchData['player1_score'];
+                $p2_score = $is_p1 ? $matchData['player2_score'] : $score;
+                
+                // Determine Winner
+                $winner_id = "NULL";
+                if ($p1_score > $p2_score) $winner_id = $matchData['player1_id'];
+                elseif ($p2_score > $p1_score) $winner_id = $matchData['player2_id'];
+                // Tie = NULL
+                
+                // Update my score, set winner, mark completed
+                $conn->query("UPDATE matches SET $my_score_col = $score, winner_id = $winner_id, status = 'completed' WHERE id = '$match_id'");
+
+                // Update Global Leaderboard (Wins)
+                if ($winner_id !== "NULL") {
+                    $conn->query("INSERT INTO leaderboard (user_id, game_id, highscore) VALUES ('$winner_id', '$game_id', 1) 
+                                  ON DUPLICATE KEY UPDATE highscore = highscore + 1");
+                }
+            }
+            
+            echo json_encode(['status' => 'success']);
+            exit();
+        }
+
         // 2. HANDLE GAME OVER (Win or Loss)
         if ($type === 'win' || $type === 'loss') {
             // Determine who won based on the report

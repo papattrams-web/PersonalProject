@@ -130,7 +130,7 @@ $turnResult = $conn->query($turnSql);
                 <div class="card-content">
                     <h3>Sudoku</h3>
                     <p>Fill the grid with logic. Zen mode enabled.</p>
-                    <a href="./Sudoku/sudoku.html" class="btn-play">Play Now</a>
+                    <a href="./Sudoku/sudoku.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 
