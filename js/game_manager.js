@@ -168,28 +168,29 @@ const GameManager = {
     },
 
 // Helper to load state
-loadMatchState: function(callback) {
-    const matchId = this.getMatchId();
-    if(!matchId) {
-        callback(null);
-        return;
-    }
-
-    fetch('../includes/get_match_state.php?match_id=' + matchId)
-        .then(res => res.json())
-        .then(data => {
-            // Check if data exists AND isn't an error
-            if(data && !data.error && data.board_state) {
-                callback(JSON.parse(data.board_state));
-            } else {
-                // Pass the whole data object so 8ball.php can read player IDs 
-                // even if board_state is null (new game)
-                callback(data); 
-            }
-        })
-        .catch(err => {
-            console.error("Error loading match:", err);
+// Helper to load state
+    loadMatchState: function(callback) {
+        const matchId = this.getMatchId();
+        if(!matchId) {
             callback(null);
-        });
+            return;
+        }
+
+        // ADDED: "&t=" + new Date().getTime() to prevent caching
+        fetch('../includes/get_match_state.php?match_id=' + matchId + '&t=' + new Date().getTime())
+            .then(res => res.json())
+            .then(data => {
+                // FIXED: Always pass the FULL data object (IDs + Status + BoardState)
+                if (data && !data.error) {
+                    callback(data);
+                } else {
+                    console.error("GameManager: Error loading match", data);
+                    callback(null);
+                }
+            })
+            .catch(err => {
+                console.error("GameManager: Fetch error", err);
+                callback(null);
+            });
     }
-};
+}; // End of GameManager object

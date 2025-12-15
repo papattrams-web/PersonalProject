@@ -27,15 +27,16 @@ $result = $conn->query($sql);
 
 // Helper function to get game URL
 function getGameUrl($slug, $match_id) {
+    // REMOVED the ".." from the start of these paths
     $path = "";
     switch ($slug) {
-        case '2048': $path = "../2048/2048.html"; break;
-        case 'pacman': $path = "../PacMan/PacMan.html"; break;
-        case 'sudoku': $path = "../Sudoku/sudoku.html"; break;
-        case 'memory': $path = "../Memory Card/MemCard.html"; break;
-        case '8ball': $path = "../8ball/8ball.php"; break;
-        case 'tictactoe': $path = "../TicTacToe/TicTacToe.html"; break;
-        case 'war': $path = "../Cards/cards.html"; break;
+        case '2048': $path = "./2048/2048.html"; break;
+        case 'pacman': $path = "./PacMan/PacMan.html"; break;
+        case 'sudoku': $path = "./Sudoku/sudoku.html"; break;
+        case 'memory': $path = "./Memory Card/MemCard.html"; break; // Check folder name!
+        case '8ball': $path = "./8ball/8ball.php"; break;
+        case 'tictactoe': $path = "./TicTacShow/TicTacShow.php"; break;
+        case 'war': $path = "./Cards/cards.html"; break;
         default: return "#";
     }
     return $path . "?match_id=" . $match_id;
