@@ -10,6 +10,8 @@ const PoolGame = {
     },
 
     mainLoop: function() {
+        if (!GameManager.gameActive) { requestAnimationFrame(PoolGame.mainLoop); return; }
+
         if(!PoolGame.gameWorld) return;
 
         Canvas.clear();

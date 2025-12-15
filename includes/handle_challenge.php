@@ -18,7 +18,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         // Map slugs to file paths
         switch ($game_slug) {
             case '2048': $url = "../2048/2048.html"; break;
-            case 'pacman': $url = "../PacMan/PacMan.html"; break;
+            case 'pacman': $url = "../PacMan/PacMan.php"; break;
             case 'sudoku': $url = "../Sudoku/sudoku.php"; break;
             case 'memory': $url = "../Memory Card/MemCard.html"; break; // Check folder name spaces
             case '8ball': $url = "../8ball/8ball.php"; break;

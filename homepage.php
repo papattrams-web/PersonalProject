@@ -121,7 +121,7 @@ $turnResult = $conn->query($turnSql);
                 <div class="card-content">
                     <h3>PacMan</h3>
                     <p>Eat the dots, avoid the ghosts. Retro classic.</p>
-                    <a href="./PacMan/PacMan.html" class="btn-play">Play Now</a>
+                    <a href="./PacMan/PacMan.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 

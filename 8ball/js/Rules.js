@@ -1,20 +1,16 @@
+// Rules.js - Fixed for Red/Yellow Color Logic
 function GameRules() {
-    // 0 = Player 1, 1 = Player 2
-    this.turn = 0; 
-    
-    // 'open' (no colors assigned), 'playing', 'gameover'
-    this.state = 'open'; 
-    
-    // Who owns what? (null, COLOR.RED, or COLOR.YELLOW)
+    this.turn = 0; // 0 = Player 1, 1 = Player 2
+    this.state = 'open'; // 'open', 'playing', 'gameover'
     this.p1Color = null; 
     this.p2Color = null;
     
-    // Turn flags - these reset every shot
+    // Turn flags
     this.foul = false;
     this.scored = false; 
     this.won = false;
-    this.firstCollision = null; // What did we hit first?
-    this.ballsPocketed = [];    // What went in the hole?
+    this.firstCollision = null;
+    this.ballsPocketed = [];    
 }
 
 GameRules.prototype.resetTurnFlags = function() {
@@ -24,63 +20,63 @@ GameRules.prototype.resetTurnFlags = function() {
     this.ballsPocketed = [];
 };
 
-// Called by Physics engine when collision happens
 GameRules.prototype.recordFirstCollision = function(color) {
     if (this.firstCollision === null) {
         this.firstCollision = color;
     }
 };
 
-// Called by Physics engine when ball enters hole
 GameRules.prototype.recordPocketed = function(color) {
     this.ballsPocketed.push(color);
 };
 
-// THE CORE LOGIC: Decides what happens next
 GameRules.prototype.processTurn = function(activePlayerId, remainingRed, remainingYellow) {
     let message = "";
     let turnContinues = false;
 
-    // 1. Check Scratch (White Ball Pocketed)
+    // 1. Check Scratch
     if (this.ballsPocketed.includes(COLOR.WHITE)) {
         this.foul = true;
         message = "Scratch! Ball in hand.";
     }
 
-    // 2. Check Valid Hit (Must hit own color first)
+    // 2. Check Valid Hit
     if (!this.foul) {
         if (this.firstCollision === null) {
             this.foul = true;
             message = "You missed the balls!";
-        } else if (this.state === 'playing') {
+        } 
+        else if (this.state === 'playing') {
             // Determine active color
             let myColor = (activePlayerId === 0) ? this.p1Color : this.p2Color;
             
-            // Calculate how many of MY specific color are left on table
+            // Calculate my remaining balls
             let myBallsRemaining = 0;
             if (myColor === COLOR.RED) myBallsRemaining = remainingRed;
             else if (myColor === COLOR.YELLOW) myBallsRemaining = remainingYellow;
             
-            // If I have balls, I must hit my color. If 0 balls, I must hit Black.
+            // Target Logic: Hit my color, or Black if none left
             let target = (myBallsRemaining > 0) ? myColor : COLOR.BLACK;
 
-            // Debugging Log (Check console if it fails again)
-            console.log(`Turn Logic: Player ${activePlayerId} | Assigned: ${myColor} | Remaining: ${myBallsRemaining} | Must Hit: ${target} | Actually Hit: ${this.firstCollision}`);
-
-            if (this.firstCollision !== target) {
+            // FIX: Force Number comparison to prevent "1" !== 1 errors
+            if (Number(this.firstCollision) !== Number(target)) {
                 this.foul = true;
-                message = "Bad contact! Must hit " + (target === COLOR.RED ? "Solids" : (target === COLOR.YELLOW ? "Stripes" : "8-Ball"));
+                
+                // Clearer Error Messages matching the Visuals
+                let colorName = (target === COLOR.RED) ? "RED" : (target === COLOR.YELLOW ? "YELLOW" : "8-BALL");
+                message = "Bad contact! You must hit " + colorName;
             }
         }
     }
 
-    // 3. Assign Colors (If table was open and a valid ball was sunk)
+    // 3. Assign Colors (Only if 'open')
     if (this.state === 'open' && !this.foul && this.ballsPocketed.length > 0) {
-        // Find the first Red or Yellow
         let validBall = this.ballsPocketed.find(c => c === COLOR.RED || c === COLOR.YELLOW);
         
         if (validBall) {
             this.state = 'playing';
+            
+            // Assign based on who sank the ball
             if (activePlayerId === 0) {
                 this.p1Color = validBall;
                 this.p2Color = (validBall === COLOR.RED) ? COLOR.YELLOW : COLOR.RED;
@@ -89,49 +85,38 @@ GameRules.prototype.processTurn = function(activePlayerId, remainingRed, remaini
                 this.p1Color = (validBall === COLOR.RED) ? COLOR.YELLOW : COLOR.RED;
             }
             this.scored = true;
-            message = "Colors Assigned: " + (validBall === COLOR.RED ? "RED" : "YELLOW");
+            
+            // FIX: Text now matches Visuals (Red/Yellow) instead of Solids/Stripes
+            let assignedColor = (validBall === COLOR.RED) ? "RED" : "YELLOW";
+            message = "You are " + assignedColor;
         }
     }
 
-    // 4. Check for Win/Loss (The 8-Ball)
+    // 4. Check 8-Ball Win/Loss
     if (this.ballsPocketed.includes(COLOR.BLACK)) {
         let myColor = (activePlayerId === 0) ? this.p1Color : this.p2Color;
-        let myBallsRemaining = (myColor === COLOR.RED) ? remainingRed : remainingYellow;
+        let myBallsRemaining = 0;
+        if (myColor === COLOR.RED) myBallsRemaining = remainingRed;
+        else if (myColor === COLOR.YELLOW) myBallsRemaining = remainingYellow;
 
-        // LOSE conditions
-        if (this.foul) {
-            message = "Foul on 8-Ball. YOU LOSE.";
-            return { gameOver: true, winner: false }; 
-        }
-        if (myBallsRemaining > 0) {
-            message = "Early 8-Ball. YOU LOSE.";
-            return { gameOver: true, winner: false };
-        }
-
-        // WIN condition
-        message = "VICTORY!";
-        return { gameOver: true, winner: true };
+        if (this.foul) return { gameOver: true, winner: false }; // Foul on 8-ball = LOSE
+        if (myBallsRemaining > 0) return { gameOver: true, winner: false }; // Early 8-ball = LOSE
+        
+        return { gameOver: true, winner: true }; // Legal 8-ball = WIN
     }
 
-    // 5. Determine Turn Continuation
+    // 5. Continuation Rule
     if (this.state === 'playing' && !this.foul) {
         let myColor = (activePlayerId === 0) ? this.p1Color : this.p2Color;
-        if (this.ballsPocketed.includes(myColor)) {
+        // Check if I sank ANY of my balls
+        let sankMyColor = this.ballsPocketed.some(c => c === myColor);
+        if (sankMyColor) {
             this.scored = true;
         }
     }
 
-    // You keep turn if: No Foul AND You Scored
-    if (!this.foul && this.scored) {
-        turnContinues = true;
-    } else {
-        turnContinues = false; // Turn passes to opponent
-    }
+    if (!this.foul && this.scored) turnContinues = true;
+    else turnContinues = false;
 
-    return { 
-        nextTurn: turnContinues, 
-        foul: this.foul, 
-        message: message, 
-        gameOver: false 
-    };
+    return { nextTurn: turnContinues, foul: this.foul, message: message, gameOver: false };
 };
