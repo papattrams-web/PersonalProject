@@ -2,7 +2,7 @@ function Game(){
 }
 
 Game.prototype.init = function(){
-    this.gameWorld = new GameWorld();
+//     this.gameWorld = new GameWorld();
 
 }
 

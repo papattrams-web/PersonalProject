@@ -113,3 +113,12 @@ Ball.prototype.collideWith= function(object){
         this.collideWithTable(object)
     }
 }
+
+Ball.prototype.serialize = function(){
+    return {
+        x: this.position.x,
+        y: this.position.y,
+        color: this.color,
+        // We don't save velocity because turn ends only when balls stop
+    };
+};

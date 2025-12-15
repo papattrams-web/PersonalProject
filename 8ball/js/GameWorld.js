@@ -2,67 +2,71 @@
 
 const DELTA = 1/177;
 
-function GameWorld(){
+function GameWorld(savedState = null){ // <--- Change 1: Accept argument
 
     // --- 1. DEFINE POCKETS ---
-    // Approximated based on your table dimensions (TopY:57, RightX: 1442, BottomY: 760, LeftX: 57)
     this.pockets = [
-        new Vector2(57, 57),      // Top Left
-        new Vector2(750, 57),     // Top Middle
-        new Vector2(1442, 57),    // Top Right
-        new Vector2(57, 760),     // Bottom Left
-        new Vector2(750, 760),    // Bottom Middle
-        new Vector2(1442, 760)    // Bottom Right
+        new Vector2(57, 57), new Vector2(750, 57), new Vector2(1442, 57),
+        new Vector2(57, 760), new Vector2(750, 760), new Vector2(1442, 760)
     ];
 
-    this.balls= [
-        [new Vector2(1022,413), COLOR.YELLOW],
-        [new Vector2(1056,393), COLOR.YELLOW],
-        [new Vector2(1056,433), COLOR.RED],
-        [new Vector2(1090,374), COLOR.RED],
-        [new Vector2(1090,413), COLOR.BLACK],
-        [new Vector2(1090,452), COLOR.YELLOW],
-        [new Vector2(1126,354), COLOR.YELLOW],
-        [new Vector2(1126,393), COLOR.RED],
-        [new Vector2(1126,433), COLOR.YELLOW],
-        [new Vector2(1126,472), COLOR.RED],
-        [new Vector2(1162,335), COLOR.RED],
-        [new Vector2(1162,374), COLOR.RED],
-        [new Vector2(1162,413), COLOR.YELLOW],
-        [new Vector2(1162,452), COLOR.RED],
-        [new Vector2(1162,491), COLOR.YELLOW],
-        [new Vector2(413,413), COLOR.WHITE]
-    ].map(params=> new Ball(params[0], params[1]))
+    // --- Change 2: Load Balls from Save OR Default ---
+    if(savedState && savedState.balls) {
+        // Load balls from DB
+        this.balls = savedState.balls.map(b => new Ball(new Vector2(b.x, b.y), b.color));
+    } else {
+        // Default Triangle Setup
+        this.balls= [
+            [new Vector2(1022,413), COLOR.YELLOW],
+            [new Vector2(1056,393), COLOR.YELLOW],
+            [new Vector2(1056,433), COLOR.RED],
+            [new Vector2(1090,374), COLOR.RED],
+            [new Vector2(1090,413), COLOR.BLACK],
+            [new Vector2(1090,452), COLOR.YELLOW],
+            [new Vector2(1126,354), COLOR.YELLOW],
+            [new Vector2(1126,393), COLOR.RED],
+            [new Vector2(1126,433), COLOR.YELLOW],
+            [new Vector2(1126,472), COLOR.RED],
+            [new Vector2(1162,335), COLOR.RED],
+            [new Vector2(1162,374), COLOR.RED],
+            [new Vector2(1162,413), COLOR.YELLOW],
+            [new Vector2(1162,452), COLOR.RED],
+            [new Vector2(1162,491), COLOR.YELLOW],
+            [new Vector2(413,413), COLOR.WHITE]
+        ].map(params=> new Ball(params[0], params[1]));
+    }
 
-    this.whiteBall= this.balls[this.balls.length -1];
-    
-    // --- 2. DIFFICULTY MODE ---
-    // Pass 'true' for Easy mode (aim assist), 'false' for Hard
+    this.whiteBall = this.balls.find(b => b.color === COLOR.WHITE);
+    // Safety check if white ball was potted in previous turn but not reset
+    if(!this.whiteBall) {
+        this.whiteBall = new Ball(new Vector2(413,413), COLOR.WHITE);
+        this.balls.push(this.whiteBall);
+    }
+
+    // --- Change 3: Load Turn State OR Default ---
+    if(savedState && savedState.turnState) {
+        this.turnState = savedState.turnState;
+    } else {
+        this.turnState = {
+            currentPlayerIndex: 0,
+            playerColors: [null, null],
+            firstHitColor: null,
+            ballsPottedThisTurn: [],
+            foul: false
+        };
+    }
+
+    // ... Rest of the constructor (table, stick, difficulty) remains the same ...
     this.difficultyModeEasy = true; 
     
-    // Pass the balls array to Stick so it can calculate aim assist
     this.stick= new Stick(
-        new Vector2(413,413), 
+        this.whiteBall.position.copy(), // Stick starts at white ball
         this.whiteBall.shoot.bind(this.whiteBall), 
         this.balls, 
         this.difficultyModeEasy
     );
 
-    this.table= {
-        TopY:57,
-        RightX: 1442,
-        BottomY: 760,
-        LeftX: 57
-    };
-
-    // --- 3. GAME RULES STATE ---
-    this.turnState = {
-        currentPlayerIndex: 0, // 0 or 1
-        playerColors: [null, null], // Assigned colors (e.g., COLOR.RED or COLOR.YELLOW)
-        firstHitColor: null, // The color of the first ball the white ball hit this turn
-        ballsPottedThisTurn: [], // Keep track of what went in
-        foul: false
-    };
+    this.table= { TopY:57, RightX: 1442, BottomY: 760, LeftX: 57 };
 }
 
 GameWorld.prototype.handleCollisions= function(){
@@ -177,6 +181,13 @@ GameWorld.prototype.resolveTurn = function(){
     this.turnState.firstHitColor = null;
     this.turnState.ballsPottedThisTurn = [];
     this.turnState.foul = false;
+
+    // --- NEW CODE: Save State to DB ---
+    // We send the entire board state to the GameManager
+    if(typeof GameManager !== 'undefined'){
+        const state = this.exportState();
+        GameManager.saveTurn(state);
+    }
 };
 
 GameWorld.prototype.assignColors = function(playerIndex, color){
@@ -198,4 +209,11 @@ GameWorld.prototype.ballsMoving= function(){
         if(this.balls[i].moving) return true;
     }
     return false;
+};
+
+GameWorld.prototype.exportState = function(){
+    return {
+        balls: this.balls.map(ball => ball.serialize()),
+        turnState: this.turnState
+    };
 };

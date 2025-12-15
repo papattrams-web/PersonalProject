@@ -141,5 +141,48 @@ const GameManager = {
 
     recordWin: function() {
         this.submitScore(1); 
+    },
+
+    // Add inside the GameManager object
+    saveTurn: function(boardState) {
+        const matchId = this.getMatchId();
+        if(!matchId) return; // Local practice, don't save
+
+        fetch('../submit_score.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                game: '8ball',
+                type: 'turn_update', // New type
+                match_id: matchId,
+                board_state: JSON.stringify(boardState) // Send as string
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert("Turn Finished. Sent to opponent.");
+                window.location.href = '../homepage.php'; // Kick back to lobby
+            }
+        });
+    },
+
+// Helper to load state
+    loadMatchState: function(callback) {
+        const matchId = this.getMatchId();
+        if(!matchId) {
+            callback(null); // No match ID, load default
+            return;
+        }
+
+        fetch('../includes/get_match_state.php?match_id=' + matchId)
+            .then(res => res.json())
+            .then(data => {
+                if(data.board_state) {
+                    callback(JSON.parse(data.board_state));
+                } else {
+                    callback(null); // Match exists but no moves made yet
+                }
+            });
     }
 };

@@ -69,6 +69,31 @@ if ($gameResult->num_rows > 0) {
                     $conn->query($winSql);
                 }
             }
+
+            // ... inside the if($match_id) block ...
+
+            if ($type === 'turn_update') {
+                $board_state = $conn->real_escape_string($data['board_state']);
+                
+                // Determine who just played based on session ID
+                $checkMatch = "SELECT player1_id, player2_id, status FROM matches WHERE id = '$match_id'";
+                $mResult = $conn->query($checkMatch);
+                $mData = $mResult->fetch_assoc();
+
+                $newStatus = '';
+                // If I am P1 and I played, now it's P2's turn
+                if ($user_id == $mData['player1_id']) {
+                    $newStatus = 'waiting_p2'; // Or whatever logic you prefer
+                } else {
+                    $newStatus = 'waiting_p1';
+                }
+
+                $sql = "UPDATE matches SET board_state = '$board_state', status = '$newStatus' WHERE id = '$match_id'";
+                $conn->query($sql);
+                
+                echo json_encode(['status' => 'success']);
+                exit();
+            }
         }
     }
 

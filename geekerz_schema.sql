@@ -70,6 +70,7 @@ CREATE TABLE matches (
     player2_score INT DEFAULT 0,
     winner_id INT NULL,
     status ENUM('pending', 'active', 'completed') DEFAULT 'pending',
+    board_state TEXT,
     played_at DATETIME NULL,
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id),
     FOREIGN KEY (player1_id) REFERENCES users(id),
