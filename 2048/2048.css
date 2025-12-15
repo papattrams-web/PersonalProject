@@ -1,9 +1,10 @@
 /* Import Clear Sans to match the original game perfectly */
-@import url('https://fonts.googleapis.com/css2?family=Clear+Sans:wght@400;500;700&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap'); */
 
 body {
-    background-color: #faf8ef; /* Warm beige background */
-    font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #faf8ef;
+    /* Update font-family to match the new import */
+    font-family: 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
     color: #776e65; /* Dark brown text */
     display: flex;
     justify-content: center;
