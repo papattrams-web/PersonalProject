@@ -166,9 +166,9 @@ $turnResult = $conn->query($turnSql);
             <div class="game-card card-tictac">
                 <div class="card-image"><i class="fas fa-times"></i></div>
                 <div class="card-content">
-                    <h3>Tic Tac Toe</h3>
+                    <h3>Tic Tac Show</h3>
                     <p>The classic X and O game. Can you win?</p>
-                    <a href="./TicTacToe/TicTacToe.html" class="btn-play">Play Now</a>
+                    <a href="./TicTacShow/TicTacShow.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 

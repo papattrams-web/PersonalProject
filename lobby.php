@@ -2,13 +2,10 @@
 session_start();
 include 'includes/db_connection.php';
 
-// Check if logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: Login/login.php");
     exit();
 }
-
-$current_user_id = $_SESSION['user_id'];
 ?>
 
 <!DOCTYPE html>
@@ -50,6 +47,18 @@ $current_user_id = $_SESSION['user_id'];
             justify-content: space-between;
             align-items: center;
         }
+        
+        /* Status Indicators */
+        .status-dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .online { background-color: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+        .offline { background-color: #95a5a6; }
+
         .challenge-btn {
             background: var(--accent-color);
             border: none;
@@ -57,9 +66,11 @@ $current_user_id = $_SESSION['user_id'];
             padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
-            text-decoration: none;
             font-size: 0.9rem;
+            transition: 0.2s;
         }
+        .challenge-btn:hover { transform: scale(1.05); }
+
         .game-select {
             padding: 5px;
             border-radius: 5px;
@@ -101,16 +112,23 @@ $current_user_id = $_SESSION['user_id'];
                 return;
             }
 
-            // AJAX call to find users
             fetch('includes/search_users.php?q=' + query)
                 .then(res => res.json())
                 .then(data => {
                     let html = '';
                     if(data.length > 0) {
                         data.forEach(user => {
+                            // Determine Dot Color and Text
+                            let statusClass = (user.status === 'online') ? 'online' : 'offline';
+                            let statusText = (user.status === 'online') ? 'Online' : 'Offline';
+
                             html += `
                                 <li class="user-item">
-                                    <span>${user.username}</span>
+                                    <div style="display:flex; align-items:center;">
+                                        <span class="status-dot ${statusClass}" title="${statusText}"></span>
+                                        <span style="font-weight:bold; font-size:1.1rem;">${user.username}</span>
+                                    </div>
+
                                     <form action="includes/create_challenge.php" method="POST" style="display:flex; align-items:center;">
                                         <input type="hidden" name="opponent_id" value="${user.id}">
                                         
@@ -119,7 +137,7 @@ $current_user_id = $_SESSION['user_id'];
                                             <option value="pacman">PacMan</option>
                                             <option value="sudoku">Sudoku</option>
                                             <option value="8ball">8 Ball</option>
-                                            <option value="tictactoe">TicTacToe</option>
+                                            <option value="tictactoe">TicTacShow</option>
                                             <option value="war">War</option>
                                         </select>
 
