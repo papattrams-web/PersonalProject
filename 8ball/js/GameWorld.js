@@ -19,6 +19,8 @@ function GameWorld(savedState) {
 
     // Load Rules Engine
     this.rules = new GameRules();
+
+    this.feedbackMessage = null; // Stores the active text to draw
     
     // Setup flag for "Ball in Hand" placement
     this.isPlacingWhiteBall = false;
@@ -129,43 +131,70 @@ GameWorld.prototype.update = function(delta) {
     }
 };
 
+// In js/GameWorld.js
+
 GameWorld.prototype.resolveTurn = function() {
     this.stick.shot = false;
 
-    // Count remaining balls for logic
+    // 1. Calculate Game State
     let reds = this.balls.filter(b => b.color === COLOR.RED).length;
     let yellows = this.balls.filter(b => b.color === COLOR.YELLOW).length;
-
-    // Ask Rules Engine what happened
     let result = this.rules.processTurn(this.rules.turn, reds, yellows);
 
-    if(result.gameOver) {
-        // Trigger Game Over in Game.js
-        PoolGame.gameOver(result.winner); 
-    } else {
-        // Handle Foul (Respawn White Ball Logic)
-        if(result.foul) {
-            // If white ball is off screen, bring it back to center for placement
-            if(this.whiteBall.position.x < 0) {
+    // 2. Determine the Feedback Message
+    if (result.gameOver) {
+        this.feedbackMessage = result.winner ? "VICTORY!" : "DEFEAT";
+    } 
+    else if (result.foul) {
+        this.feedbackMessage = result.message || "FOUL!";
+    } 
+    else if (!result.nextTurn) {
+        this.feedbackMessage = "Turn Ended";
+    }
+
+    // 3. Handle Game Logic (State Updates)
+    if (!result.gameOver) {
+        if (result.foul) {
+            // Respawn White Ball Logic
+            if (this.whiteBall.position.x < 0) {
                 this.whiteBall.position = new Vector2(413, 413);
                 this.whiteBall.velocity = new Vector2();
             }
-            // Next player gets to place it
             this.isPlacingWhiteBall = true;
         }
 
-        if(result.nextTurn) {
-            // I play again
+        if (!result.nextTurn) {
+            // Switch Turn locally before saving
+            this.rules.turn = 1 - this.rules.turn;
+            this.rules.resetTurnFlags();
+        } else {
+            // Same player continues
             this.rules.resetTurnFlags();
             this.stick.reposition(this.whiteBall.position);
-            // Optional: alert(result.message);
-        } else {
-            // Switch Turn
-            this.rules.turn = 1 - this.rules.turn; // Toggle 0/1
-            this.rules.resetTurnFlags();
-            
-            // Save Data and Send to Server
+        }
+    }
+
+    // 4. Execute with Delay (So user sees the message)
+    // We only delay if the turn is changing or game is over.
+    // If it's still my turn (and no foul), we might just clear the message quickly.
+
+    if (result.gameOver) {
+        setTimeout(() => {
+            PoolGame.gameOver(result.winner);
+        }, 3000); // 3 second delay for Win/Loss
+    } 
+    else if (!result.nextTurn) {
+        setTimeout(() => {
             PoolGame.sendTurn(this.serialize());
+        }, 2000); // 2 second delay before sending to opponent
+    } 
+    else {
+        // It's still my turn. 
+        // If there was a message (e.g. "Colors Assigned"), show it briefly then clear.
+        if (this.feedbackMessage) {
+            setTimeout(() => {
+                this.feedbackMessage = null;
+            }, 1500);
         }
     }
 };
@@ -226,6 +255,19 @@ GameWorld.prototype.draw = function() {
     if(!this.isPlacingWhiteBall && !this.ballsMoving()) this.stick.draw();
     
     if(this.isPlacingWhiteBall) Canvas.drawText("Place Cue Ball", new Vector2(750, 200), "#fff");
+
+    // ADD THIS BLOCK: Draw the feedback message overlay
+    if (this.feedbackMessage) {
+        // Draw a semi-transparent black background box for contrast
+        const ctx = Canvas._canvasContext;
+        ctx.save();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, 1500, 825);
+        ctx.restore();
+
+        // Draw the text
+        Canvas.drawText(this.feedbackMessage, new Vector2(750, 412), "#fff", "center", "80px Arial");
+    }
 };
 
 // Save State to JSON
