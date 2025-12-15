@@ -24,6 +24,16 @@ Canvas2D.prototype.drawImage = function(image, position, origin, rotation=0){
     this._canvasContext.restore()
 }
 
+Canvas2D.prototype.drawText = function(text, position, color, textAlign="center", font="30px Arial") {
+    this._canvasContext.save();
+    this._canvasContext.translate(position.x, position.y);
+    this._canvasContext.fillStyle = color || "#ffffff";
+    this._canvasContext.font = font;
+    this._canvasContext.textAlign = textAlign;
+    this._canvasContext.fillText(text, 0, 0);
+    this._canvasContext.restore();
+}
+
 let Canvas = new Canvas2D();
 
 

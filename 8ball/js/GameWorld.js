@@ -1,219 +1,258 @@
-// GameWorld.js
+"use strict";
 
-const DELTA = 1/177;
+const BALL_SIZE = 38;
+const TABLE_W = 1500;
+const TABLE_H = 825;
 
-function GameWorld(savedState = null){ // <--- Change 1: Accept argument
-
-    // --- 1. DEFINE POCKETS ---
-    this.pockets = [
-        new Vector2(57, 57), new Vector2(750, 57), new Vector2(1442, 57),
-        new Vector2(57, 760), new Vector2(750, 760), new Vector2(1442, 760)
-    ];
-
-    // --- Change 2: Load Balls from Save OR Default ---
-    if(savedState && savedState.balls) {
-        // Load balls from DB
-        this.balls = savedState.balls.map(b => new Ball(new Vector2(b.x, b.y), b.color));
-    } else {
-        // Default Triangle Setup
-        this.balls= [
-            [new Vector2(1022,413), COLOR.YELLOW],
-            [new Vector2(1056,393), COLOR.YELLOW],
-            [new Vector2(1056,433), COLOR.RED],
-            [new Vector2(1090,374), COLOR.RED],
-            [new Vector2(1090,413), COLOR.BLACK],
-            [new Vector2(1090,452), COLOR.YELLOW],
-            [new Vector2(1126,354), COLOR.YELLOW],
-            [new Vector2(1126,393), COLOR.RED],
-            [new Vector2(1126,433), COLOR.YELLOW],
-            [new Vector2(1126,472), COLOR.RED],
-            [new Vector2(1162,335), COLOR.RED],
-            [new Vector2(1162,374), COLOR.RED],
-            [new Vector2(1162,413), COLOR.YELLOW],
-            [new Vector2(1162,452), COLOR.RED],
-            [new Vector2(1162,491), COLOR.YELLOW],
-            [new Vector2(413,413), COLOR.WHITE]
-        ].map(params=> new Ball(params[0], params[1]));
-    }
-
-    this.whiteBall = this.balls.find(b => b.color === COLOR.WHITE);
-    // Safety check if white ball was potted in previous turn but not reset
-    if(!this.whiteBall) {
-        this.whiteBall = new Ball(new Vector2(413,413), COLOR.WHITE);
-        this.balls.push(this.whiteBall);
-    }
-
-    // --- Change 3: Load Turn State OR Default ---
-    if(savedState && savedState.turnState) {
-        this.turnState = savedState.turnState;
-    } else {
-        this.turnState = {
-            currentPlayerIndex: 0,
-            playerColors: [null, null],
-            firstHitColor: null,
-            ballsPottedThisTurn: [],
-            foul: false
-        };
-    }
-
-    // ... Rest of the constructor (table, stick, difficulty) remains the same ...
-    this.difficultyModeEasy = true; 
+function GameWorld(savedState) {
+    // Initialize empty arrays
+    this.balls = [];
+    this.whiteBall = null;
+    this.stick = null;
     
-    this.stick= new Stick(
-        this.whiteBall.position.copy(), // Stick starts at white ball
-        this.whiteBall.shoot.bind(this.whiteBall), 
-        this.balls, 
-        this.difficultyModeEasy
-    );
+    this.table = {
+        TopY: 57,
+        RightX: 1443, // 1500 - 57
+        BottomY: 768, // 825 - 57
+        LeftX: 57
+    };
 
-    this.table= { TopY:57, RightX: 1442, BottomY: 760, LeftX: 57 };
+    // Load Rules Engine
+    this.rules = new GameRules();
+    
+    // Setup flag for "Ball in Hand" placement
+    this.isPlacingWhiteBall = false;
+
+    // Load State from Database OR Start New Game
+    if (savedState && savedState.balls) {
+        this.loadState(savedState);
+    } else {
+        this.initNewGame();
+    }
 }
 
-GameWorld.prototype.handleCollisions= function(){
-    for(let i=0; i<this.balls.length; i++){
-        this.balls[i].collideWith(this.table);
-
-        for(let j= i+1; j<this.balls.length; j++){
-            const firstBall= this.balls[i];
-            const secondBall= this.balls[j];
-            
-            // Check for collision
-            const dist = firstBall.position.dist(secondBall.position);
-            if(dist < BALL_DIAMETER){
-                firstBall.collideWithBall(secondBall);
-
-                // --- RULE CHECK: FIRST CONTACT ---
-                // If the white ball hits another ball, record the color of that ball (if it's the first hit)
-                if(this.turnState.firstHitColor === null){
-                    if(firstBall === this.whiteBall){
-                        this.turnState.firstHitColor = secondBall.color; // Found via sprite, but ideally Ball should store color property directly
-                    } else if(secondBall === this.whiteBall){
-                        this.turnState.firstHitColor = firstBall.color;
-                    }
-                }
-            }
-        }
-    }
-};
-
-GameWorld.prototype.update= function(){
-    this.handleCollisions();
-    this.stick.update();
+// 1. Setup a fresh Triangle Rack
+GameWorld.prototype.initNewGame = function() {
+    let startX = 1090;
+    let startY = 413;
     
-    // Update all balls
-    for(let i=0; i<this.balls.length; i++) {
-        this.balls[i].update(DELTA);
-    }
+    // Math to pack circles tightly
+    let rowX = BALL_SIZE * Math.cos(Math.PI/6) + 2; 
+    let rowY = BALL_SIZE/2 + 2;
 
-    // --- CHECK POCKETS ---
-    for(let i = this.balls.length - 1; i >= 0; i--){
-        let ball = this.balls[i];
-        for(let p = 0; p < this.pockets.length; p++){
-            // If ball is close enough to pocket center (radius of 46 roughly)
-            if(ball.position.dist(this.pockets[p]) < 46){ 
-                
-                if(ball === this.whiteBall){
-                    // SCRATCH: White ball went in
-                    this.turnState.foul = true;
-                    this.whiteBall.velocity = new Vector2();
-                    this.whiteBall.position = new Vector2(413, 413); // Reset position
-                    this.whiteBall.moving = false;
-                } else {
-                    // Normal ball went in
-                    this.turnState.ballsPottedThisTurn.push(ball.color); // Store color
-                    this.balls.splice(i, 1); // Remove from game
-                }
-                break; 
+    this.balls = [];
+    
+    // Cue Ball
+    this.whiteBall = new Ball(new Vector2(413, 413), COLOR.WHITE);
+    this.balls.push(this.whiteBall);
+
+    // Row 1
+    this.balls.push(new Ball(new Vector2(startX, startY), COLOR.RED));
+
+    // Row 2
+    this.balls.push(new Ball(new Vector2(startX + rowX, startY - rowY), COLOR.YELLOW));
+    this.balls.push(new Ball(new Vector2(startX + rowX, startY + rowY), COLOR.RED));
+
+    // Row 3 (8-Ball in middle)
+    this.balls.push(new Ball(new Vector2(startX + rowX*2, startY - rowY*2), COLOR.RED));
+    this.balls.push(new Ball(new Vector2(startX + rowX*2, startY), COLOR.BLACK));
+    this.balls.push(new Ball(new Vector2(startX + rowX*2, startY + rowY*2), COLOR.YELLOW));
+
+    // Row 4
+    this.balls.push(new Ball(new Vector2(startX + rowX*3, startY - rowY*3), COLOR.YELLOW));
+    this.balls.push(new Ball(new Vector2(startX + rowX*3, startY - rowY), COLOR.RED));
+    this.balls.push(new Ball(new Vector2(startX + rowX*3, startY + rowY), COLOR.YELLOW));
+    this.balls.push(new Ball(new Vector2(startX + rowX*3, startY + rowY*3), COLOR.RED));
+
+    // Row 5
+    this.balls.push(new Ball(new Vector2(startX + rowX*4, startY - rowY*4), COLOR.RED));
+    this.balls.push(new Ball(new Vector2(startX + rowX*4, startY - rowY*2), COLOR.YELLOW));
+    this.balls.push(new Ball(new Vector2(startX + rowX*4, startY), COLOR.RED));
+    this.balls.push(new Ball(new Vector2(startX + rowX*4, startY + rowY*2), COLOR.YELLOW));
+    this.balls.push(new Ball(new Vector2(startX + rowX*4, startY + rowY*4), COLOR.YELLOW));
+
+    this.stick = new Stick(this.whiteBall.position, this.shoot.bind(this), this.balls, true);
+};
+
+GameWorld.prototype.handleInput = function(delta) {
+    // If placing white ball (after a scratch)
+    if (this.isPlacingWhiteBall) {
+        this.whiteBall.position = Mouse.position.copy();
+        
+        // Clamp inside table
+        if(this.whiteBall.position.x < 60) this.whiteBall.position.x = 60;
+        if(this.whiteBall.position.x > 1440) this.whiteBall.position.x = 1440;
+        if(this.whiteBall.position.y < 60) this.whiteBall.position.y = 60;
+        if(this.whiteBall.position.y > 765) this.whiteBall.position.y = 765;
+
+        // Click to place
+        if(Mouse.left.pressed && !this.checkOverlap(this.whiteBall)) {
+            this.isPlacingWhiteBall = false;
+            this.stick.reposition(this.whiteBall.position);
+        }
+    } else {
+        // Standard stick input
+        this.stick.update();
+    }
+};
+
+GameWorld.prototype.update = function(delta) {
+    // Physics Loop
+    for(let i=0; i<this.balls.length; i++) {
+        for(let j=i+1; j<this.balls.length; j++) {
+            this.handleCollision(this.balls[i], this.balls[j]);
+        }
+
+        this.balls[i].collideWithTable(this.table);
+
+        this.balls[i].update(delta);
+
+        // Check Pockets
+        if(this.isInsideHole(this.balls[i].position)) {
+            this.rules.recordPocketed(this.balls[i].color);
+            
+            if(this.balls[i].color === COLOR.WHITE) {
+                // Don't delete white ball, just hide it
+                this.balls[i].velocity = new Vector2();
+                this.balls[i].position = new Vector2(-1000, -1000);
+            } else {
+                // Remove other balls
+                this.balls.splice(i, 1);
+                i--;
             }
         }
     }
 
-    // --- END OF TURN LOGIC ---
-    if(!this.ballsMoving() && this.stick.shot){
-        this.resolveTurn(); // Decide who plays next
-        this.stick.reposition(this.whiteBall.position);
+    // End of Turn Check: Stick shot AND everything stopped moving
+    if(this.stick.shot && !this.ballsMoving()) {
+        this.resolveTurn();
     }
 };
 
-GameWorld.prototype.resolveTurn = function(){
-    const currentState = this.turnState;
-    const currentPlayer = currentState.currentPlayerIndex;
-    const assignedColor = currentState.playerColors[currentPlayer];
+GameWorld.prototype.resolveTurn = function() {
+    this.stick.shot = false;
 
-    let turnContinues = false;
+    // Count remaining balls for logic
+    let reds = this.balls.filter(b => b.color === COLOR.RED).length;
+    let yellows = this.balls.filter(b => b.color === COLOR.YELLOW).length;
 
-    // 1. Did we hit our own color first? (Or any color if unassigned)
-    let legalHit = true;
-    if(assignedColor !== null){
-        if(currentState.firstHitColor !== assignedColor){
-            legalHit = false; // Foul: Hit opponent's ball or black first
+    // Ask Rules Engine what happened
+    let result = this.rules.processTurn(this.rules.turn, reds, yellows);
+
+    if(result.gameOver) {
+        // Trigger Game Over in Game.js
+        PoolGame.gameOver(result.winner); 
+    } else {
+        // Handle Foul (Respawn White Ball Logic)
+        if(result.foul) {
+            // If white ball is off screen, bring it back to center for placement
+            if(this.whiteBall.position.x < 0) {
+                this.whiteBall.position = new Vector2(413, 413);
+                this.whiteBall.velocity = new Vector2();
+            }
+            // Next player gets to place it
+            this.isPlacingWhiteBall = true;
+        }
+
+        if(result.nextTurn) {
+            // I play again
+            this.rules.resetTurnFlags();
+            this.stick.reposition(this.whiteBall.position);
+            // Optional: alert(result.message);
+        } else {
+            // Switch Turn
+            this.rules.turn = 1 - this.rules.turn; // Toggle 0/1
+            this.rules.resetTurnFlags();
+            
+            // Save Data and Send to Server
+            PoolGame.sendTurn(this.serialize());
         }
     }
-
-    // 2. Process balls potted
-    if(currentState.ballsPottedThisTurn.length > 0 && !currentState.foul){
-        const firstPottedColor = currentState.ballsPottedThisTurn[0];
-        
-        // If colors aren't assigned yet, assign them now
-        if(currentState.playerColors[0] === null && firstPottedColor !== COLOR.WHITE && firstPottedColor !== COLOR.BLACK){
-             this.assignColors(currentPlayer, firstPottedColor);
-             turnContinues = true;
-        } 
-        // Logic if colors ARE assigned
-        else {
-             // Did current player sink their own ball?
-             const myColor = currentState.playerColors[currentPlayer];
-             const sunkMyBall = currentState.ballsPottedThisTurn.includes(myColor);
-             
-             if(sunkMyBall && legalHit){
-                 turnContinues = true;
-             }
-        }
-    }
-
-    // Switch turn if no valid reason to continue, or if a foul occurred
-    if(!turnContinues || currentState.foul || !legalHit){
-        this.turnState.currentPlayerIndex = 1 - this.turnState.currentPlayerIndex; // Switch 0 -> 1 or 1 -> 0
-        console.log("Turn Switch! Now Player " + (this.turnState.currentPlayerIndex + 1));
-    }
-
-    // Reset Turn State
-    this.turnState.firstHitColor = null;
-    this.turnState.ballsPottedThisTurn = [];
-    this.turnState.foul = false;
-
-    // --- NEW CODE: Save State to DB ---
-    // We send the entire board state to the GameManager
-    if(typeof GameManager !== 'undefined'){
-        const state = this.exportState();
-        GameManager.saveTurn(state);
-    }
 };
 
-GameWorld.prototype.assignColors = function(playerIndex, color){
-    this.turnState.playerColors[playerIndex] = color;
-    // Assign opposite color to other player (Assuming RED/YELLOW)
-    const otherColor = (color === COLOR.RED) ? COLOR.YELLOW : COLOR.RED;
-    this.turnState.playerColors[1 - playerIndex] = otherColor;
-    console.log("Colors Assigned: P1=" + this.turnState.playerColors[0] + " P2=" + this.turnState.playerColors[1]);
+// Physics Helpers
+GameWorld.prototype.handleCollision = function(ball1, ball2) {
+    // Record First Hit for Rules
+    if(ball1.color === COLOR.WHITE) this.rules.recordFirstCollision(ball2.color);
+    if(ball2.color === COLOR.WHITE) this.rules.recordFirstCollision(ball1.color);
+
+    ball1.collideWith(ball2); // Existing physics in Ball.js
 };
 
-GameWorld.prototype.draw= function(){
-    Canvas.drawImage(sprites.background,{x:0,y:0});
-    for(let i=0; i<this.balls.length; i++) this.balls[i].draw();
-    this.stick.draw();
+GameWorld.prototype.shoot = function(power, rotation) {
+    this.whiteBall.shoot(power, rotation);
+    this.rules.resetTurnFlags();
 };
 
-GameWorld.prototype.ballsMoving= function(){
-    for(let i=0; i<this.balls.length; i++){
-        if(this.balls[i].moving) return true;
-    }
-    return false;
+GameWorld.prototype.ballsMoving = function() {
+    return this.balls.some(b => b.moving);
 };
 
-GameWorld.prototype.exportState = function(){
+// --- FIX: Manual Distance Calculation ---
+GameWorld.prototype.getDistance = function(v1, v2) {
+    let dx = v1.x - v2.x;
+    let dy = v1.y - v2.y;
+    return Math.sqrt(dx*dx + dy*dy);
+};
+
+GameWorld.prototype.checkOverlap = function(ball) {
+    return this.balls.some(b => {
+        if (b === ball) return false;
+        return this.getDistance(b.position, ball.position) < BALL_SIZE;
+    });
+};
+
+GameWorld.prototype.isInsideHole = function(pos) {
+    // Adjusted coordinates for 1500x825 table
+    const pockets = [
+        new Vector2(62, 62),     // Top Left
+        new Vector2(1435, 62),   // Top Right
+        new Vector2(62, 762),    // Bottom Left
+        new Vector2(1435, 762),  // Bottom Right
+        new Vector2(750, 32),    // Top Middle
+        new Vector2(750, 794)    // Bottom Middle
+    ];
+    
+    // Increased radius slightly for better "feel" (46 -> 55)
+    let holeRadius = 55; 
+    
+    return pockets.some(p => this.getDistance(pos, p) < holeRadius);
+};
+
+GameWorld.prototype.draw = function() {
+    Canvas.drawImage(sprites.background, {x:0, y:0});
+    this.balls.forEach(b => b.draw());
+    // Only draw stick if it is aiming and not placing ball
+    if(!this.isPlacingWhiteBall && !this.ballsMoving()) this.stick.draw();
+    
+    if(this.isPlacingWhiteBall) Canvas.drawText("Place Cue Ball", new Vector2(750, 200), "#fff");
+};
+
+// Save State to JSON
+GameWorld.prototype.serialize = function() {
     return {
-        balls: this.balls.map(ball => ball.serialize()),
-        turnState: this.turnState
+        rules: this.rules, // Saves turn, colors, state
+        balls: this.balls.map(b => b.serialize()), // Saves x,y,color
+        isPlacingWhiteBall: this.isPlacingWhiteBall
     };
+};
+
+// Load State from JSON
+GameWorld.prototype.loadState = function(state) {
+    // Load Rules
+    this.rules = new GameRules();
+    Object.assign(this.rules, state.rules);
+
+    // Recreate Balls
+    this.balls = state.balls.map(data => {
+        let b = new Ball(new Vector2(data.x, data.y), data.color);
+        return b;
+    });
+
+    // Re-link references
+    this.whiteBall = this.balls.find(b => b.color === COLOR.WHITE);
+    this.isPlacingWhiteBall = state.isPlacingWhiteBall;
+    
+    // Setup Stick
+    this.stick = new Stick(this.whiteBall.position, this.shoot.bind(this), this.balls, true);
 };
