@@ -41,7 +41,7 @@ $inboxResult = $conn->query($inboxSql);
         <div class="user-menu">
             <a href="lobby.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Find Players</a>
             <a href="leaderboard.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
-            <span>Welcome, Player1</span>
+            <span style="margin-right: 15px; font-weight: 500;">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
             <button class="btn-logout">Logout</button>
         </div>
     </nav>
