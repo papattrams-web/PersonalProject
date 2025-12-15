@@ -4,27 +4,26 @@ const BALL_SIZE = 38;
 const TABLE_W = 1500;
 const TABLE_H = 825;
 
-function GameWorld(savedState) {
+function GameWorld(savedState, myPlayerIndex) {
     // Initialize empty arrays
     this.balls = [];
     this.whiteBall = null;
+    this.rules = new GameRules();// Load Rules Engine
     this.stick = null;
+    this.feedbackMessage = null; // Stores the active text to draw
+    this.isPlacingWhiteBall = false;// Setup flag for "Ball in Hand" placement
     
+    // ADD THIS: Store who I am
+    this.myPlayerIndex = (typeof myPlayerIndex !== 'undefined') ? myPlayerIndex : 0; 
+    // Default to 0 for local testing if needed, but in multiplayer it must be set.
+
     this.table = {
         TopY: 57,
         RightX: 1443, // 1500 - 57
         BottomY: 768, // 825 - 57
         LeftX: 57
     };
-
-    // Load Rules Engine
-    this.rules = new GameRules();
-
-    this.feedbackMessage = null; // Stores the active text to draw
     
-    // Setup flag for "Ball in Hand" placement
-    this.isPlacingWhiteBall = false;
-
     // Load State from Database OR Start New Game
     if (savedState && savedState.balls) {
         this.loadState(savedState);
@@ -77,6 +76,12 @@ GameWorld.prototype.initNewGame = function() {
 };
 
 GameWorld.prototype.handleInput = function(delta) {
+    // SECURITY CHECK: Is it my turn?
+    // If the game turn (0 or 1) doesn't match my index, DO NOTHING.
+    if (this.rules.turn !== this.myPlayerIndex) {
+        return; 
+    }
+
     // If placing white ball (after a scratch)
     if (this.isPlacingWhiteBall) {
         this.whiteBall.position = Mouse.position.copy();

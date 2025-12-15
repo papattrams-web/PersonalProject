@@ -168,21 +168,28 @@ const GameManager = {
     },
 
 // Helper to load state
-    loadMatchState: function(callback) {
-        const matchId = this.getMatchId();
-        if(!matchId) {
-            callback(null); // No match ID, load default
-            return;
-        }
+loadMatchState: function(callback) {
+    const matchId = this.getMatchId();
+    if(!matchId) {
+        callback(null);
+        return;
+    }
 
-        fetch('../includes/get_match_state.php?match_id=' + matchId)
-            .then(res => res.json())
-            .then(data => {
-                if(data.board_state) {
-                    callback(JSON.parse(data.board_state));
-                } else {
-                    callback(null); // Match exists but no moves made yet
-                }
-            });
+    fetch('../includes/get_match_state.php?match_id=' + matchId)
+        .then(res => res.json())
+        .then(data => {
+            // Check if data exists AND isn't an error
+            if(data && !data.error && data.board_state) {
+                callback(JSON.parse(data.board_state));
+            } else {
+                // Pass the whole data object so 8ball.php can read player IDs 
+                // even if board_state is null (new game)
+                callback(data); 
+            }
+        })
+        .catch(err => {
+            console.error("Error loading match:", err);
+            callback(null);
+        });
     }
 };

@@ -159,7 +159,7 @@ $turnResult = $conn->query($turnSql);
                 <div class="card-content">
                     <h3>8 Ball Pool</h3>
                     <p>Pot the balls and beat the table.</p>
-                    <a href="./8ball/8ball.html" class="btn-play">Play Now</a>
+                    <a href="./8ball/8ball.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 
