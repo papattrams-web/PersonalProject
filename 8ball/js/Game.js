@@ -53,7 +53,11 @@ const PoolGame = {
     // Called when Game Over
     gameOver: function(didIWin) {
         let type = didIWin ? 'win' : 'loss';
-        let score = didIWin ? 1 : 0;
+        
+        //replacing
+        // let score = didIWin ? 1 : 0;
+
+        let score = didIWin ? 1 : -1;
 
         fetch('../submit_score.php', {
             method: 'POST',

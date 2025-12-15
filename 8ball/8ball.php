@@ -10,6 +10,12 @@ if (!isset($_SESSION['user_id'])) {
 // 2. Capture Data
 $my_user_id = $_SESSION['user_id'];
 $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
+
+// 3. Manual Entry Prevention
+if ($match_id === 0) {
+    header("Location: ../lobby.php?msg=select_rival");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -19,8 +25,16 @@ $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>8 BALL - Geekerz</title>
     <link rel="stylesheet" href="8ball.css">
+    <style>
+        body { margin: 0; background: #0f0c29; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-radius: 20px; }
+        /* Back Button */
+        .back-nav { position: absolute; top: 20px; left: 20px; color: white; text-decoration: none; font-family: sans-serif; font-weight: bold; }
+    </style>
 </head>
 <body>
+    <a href="../homepage.php" class="back-nav">&larr; Dashboard</a>
+    
     <canvas id="screen" width="1500" height="825"></canvas>
     
     <script src="./js/Colors.js"></script>
@@ -57,7 +71,7 @@ $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
             // --- SAFETY CHECK 1: Did we get a valid response? ---
             if (!response || response.error) {
                 console.error("Match Data Error:", response);
-                alert("Could not load match data. Check console.");
+                alert("Error loading match data.");
                 return;
             }
 
@@ -65,17 +79,20 @@ $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
             // 0 = Player 1 (Challenger), 1 = Player 2 (Opponent)
             let myPlayerIndex = -1;
 
-            // Ensure IDs are treated as strings or numbers consistently for comparison
+            // Use loose comparison (==) to handle String vs Int ID types
             if (MY_USER_ID == response.player1_id) {
                 myPlayerIndex = 0;
             } else if (MY_USER_ID == response.player2_id) {
                 myPlayerIndex = 1;
+            } else {
+                console.warn("Spectator Detected: ID " + MY_USER_ID + " is not in match.");
             }
+
+            console.log("My Role Index:", myPlayerIndex);
 
             // --- LOGIC: Handle the Board State ---
             let savedState = null;
 
-            // Only try to parse if there is actually data strings
             if (response.board_state && response.board_state !== "null") {
                 try {
                     savedState = JSON.parse(response.board_state);
@@ -85,12 +102,11 @@ $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
                 }
             }
 
-            // If savedState is null, GameWorld automatically runs initNewGame() (The Triangle)
+            // Initialize Game World
             PoolGame.gameWorld = new GameWorld(savedState, myPlayerIndex);
 
             // --- UI FEEDBACK ---
-            // If the game just started (Turn 0) and I am Player 2 (Index 1)
-            // I need to know why I can't move.
+            // If it's not my turn, show feedback immediately
             if (PoolGame.gameWorld.rules.turn !== myPlayerIndex) {
                 PoolGame.gameWorld.feedbackMessage = "Opponent's Turn";
             }
@@ -100,6 +116,5 @@ $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
         });
     });
 </script>
-
 </body>
 </html>

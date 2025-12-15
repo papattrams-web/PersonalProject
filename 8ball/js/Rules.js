@@ -55,15 +55,21 @@ GameRules.prototype.processTurn = function(activePlayerId, remainingRed, remaini
         } else if (this.state === 'playing') {
             // Determine active color
             let myColor = (activePlayerId === 0) ? this.p1Color : this.p2Color;
-            let myBallsRemaining = (myColor === COLOR.RED) ? remainingRed : remainingYellow;
             
-            // If I have balls left, I MUST hit my color. 
-            // If I have 0 balls left, I MUST hit the 8-Ball (Black).
+            // Calculate how many of MY specific color are left on table
+            let myBallsRemaining = 0;
+            if (myColor === COLOR.RED) myBallsRemaining = remainingRed;
+            else if (myColor === COLOR.YELLOW) myBallsRemaining = remainingYellow;
+            
+            // If I have balls, I must hit my color. If 0 balls, I must hit Black.
             let target = (myBallsRemaining > 0) ? myColor : COLOR.BLACK;
+
+            // Debugging Log (Check console if it fails again)
+            console.log(`Turn Logic: Player ${activePlayerId} | Assigned: ${myColor} | Remaining: ${myBallsRemaining} | Must Hit: ${target} | Actually Hit: ${this.firstCollision}`);
 
             if (this.firstCollision !== target) {
                 this.foul = true;
-                message = "Bad contact! Ball in hand.";
+                message = "Bad contact! Must hit " + (target === COLOR.RED ? "Solids" : (target === COLOR.YELLOW ? "Stripes" : "8-Ball"));
             }
         }
     }

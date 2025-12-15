@@ -107,6 +107,11 @@ GameWorld.prototype.update = function(delta) {
     // Physics Loop
     for(let i=0; i<this.balls.length; i++) {
         for(let j=i+1; j<this.balls.length; j++) {
+            if (this.isPlacingWhiteBall) {
+                if (this.balls[i] === this.whiteBall || this.balls[j] === this.whiteBall) {
+                    continue; 
+                }
+            }
             this.handleCollision(this.balls[i], this.balls[j]);
         }
 
