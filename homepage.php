@@ -49,7 +49,8 @@ $turnResult = $conn->query($turnSql);
             <a href="history_page.php" style="color:yellow; margin-right: 20px; text-decoration: none; font-weight:bold;">Matches</a>
             <a href="leaderboard.php" style="color:green; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
             <span style="margin-right: 15px; font-weight: 500;">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-            <button class="btn-logout">Logout</button>
+            
+            <a href="logout.php"><button class="btn-logout">Logout</button></a>
         </div>
     </nav>
 
