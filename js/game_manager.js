@@ -2,28 +2,38 @@ const GameManager = {
     config: {
         gameSlug: null,
         gameType: 'score', // 'score' or 'win'
-        duration: 90, // 90 seconds (1.5 mins)
-        scoreElementId: 'score', // Default ID to look for score
+        duration: 90, // 90 seconds
+        scoreElementId: 'score',
     },
     timer: null,
     timeLeft: 0,
 
-    // 1. Initialize the Game Session
     init: function(slug, type, scoreId = 'score') {
         this.config.gameSlug = slug;
         this.config.gameType = type;
         this.config.scoreElementId = scoreId;
         
+        // Check if this is a Ranked Match
+        const matchId = this.getMatchId();
+        
+        if(matchId) {
+            console.log("Ranked Match Detected: " + matchId);
+        }
+
         if (type === 'score') {
-            this.createOverlay();
+            this.createOverlay(matchId);
         } else {
-            // For Win/Loss games, we just listen for the end, no timer overlay needed initially
             console.log("Win/Loss game ready.");
         }
     },
 
-    // 2. Create the "Ready?" Overlay
-    createOverlay: function() {
+    // Helper to get URL params
+    getMatchId: function() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('match_id');
+    },
+
+    createOverlay: function(matchId) {
         const overlay = document.createElement('div');
         overlay.id = 'gm-overlay';
         overlay.style.cssText = `
@@ -33,9 +43,13 @@ const GameManager = {
             color: white; font-family: sans-serif;
         `;
         
+        // Different text for Ranked vs Practice
+        const titleText = matchId ? "Ranked Match" : "Ready?";
+        const subText = matchId ? "You have 90s to beat your opponent." : "You have 1.5 minutes to get the highest score.";
+        
         overlay.innerHTML = `
-            <h1 style="font-size: 3rem; margin-bottom: 20px;">Ready?</h1>
-            <p>You have 1.5 minutes to get the highest score.</p>
+            <h1 style="font-size: 3rem; margin-bottom: 20px;">${titleText}</h1>
+            <p>${subText}</p>
             <button id="gm-start-btn" style="
                 padding: 15px 30px; font-size: 1.5rem; cursor: pointer;
                 background: #6c5ce7; color: white; border: none; border-radius: 50px;
@@ -50,11 +64,9 @@ const GameManager = {
         });
     },
 
-    // 3. Start Timer
     startGame: function() {
         this.timeLeft = this.config.duration;
         
-        // Create Timer Display
         const timerDisplay = document.createElement('div');
         timerDisplay.id = 'gm-timer';
         timerDisplay.style.cssText = `
@@ -81,7 +93,6 @@ const GameManager = {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     },
 
-    // 4. End Game & Scrape Score
     endGame: function() {
         clearInterval(this.timer);
         
@@ -90,14 +101,11 @@ const GameManager = {
         cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;";
         document.body.appendChild(cover);
 
-        // Scrape Score
         let finalScore = 0;
         const scoreEl = document.getElementById(this.config.scoreElementId);
         if(scoreEl) {
-            finalScore = parseInt(scoreEl.innerText) || 0; // Grab text and convert to integer
+            finalScore = parseInt(scoreEl.innerText) || 0; 
         } else {
-            // Fallback for Pacman/others if ID differs (we can refine this later)
-            // Try querySelector if ID fails
              const scoreClass = document.querySelector('.score-container') || document.querySelector('.score-display');
              if(scoreClass) finalScore = parseInt(scoreClass.innerText) || 0;
         }
@@ -106,29 +114,32 @@ const GameManager = {
         this.submitScore(finalScore);
     },
 
-    // 5. Submit Data
     submitScore: function(scoreVal) {
+        // Send Match ID if it exists
+        const matchId = this.getMatchId();
+
         fetch('../submit_score.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 game: this.config.gameSlug,
                 score: scoreVal,
-                type: this.config.gameType
+                type: this.config.gameType,
+                match_id: matchId 
             })
         })
         .then(res => res.json())
         .then(data => {
             if(data.status === 'success') {
-                window.location.href = '../homepage.php'; // Return to lobby
+                // If it was a match, go back to lobby/homepage
+                window.location.href = '../homepage.php'; 
             } else {
                 alert("Error saving score: " + data.message);
             }
         });
     },
 
-    // 6. Manual Trigger for Win/Loss Games
     recordWin: function() {
-        this.submitScore(1); // 1 represents a "Win" increment
+        this.submitScore(1); 
     }
 };

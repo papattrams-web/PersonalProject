@@ -1,3 +1,26 @@
+<?php
+// Ensure this is at the top of homepage.php
+session_start();
+include 'includes/db_connection.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: Login/login.php");
+    exit();
+}
+
+$my_id = $_SESSION['user_id'];
+
+// Fetch Pending Challenges
+// We join 'users' to get the challenger's name and 'games' to get the game name
+$inboxSql = "SELECT m.id as match_id, u.username as challenger, g.display_name, g.game_slug
+             FROM matches m
+             JOIN users u ON m.player1_id = u.id
+             JOIN games g ON m.game_id = g.id
+             WHERE m.player2_id = '$my_id' AND m.status = 'pending'";
+
+$inboxResult = $conn->query($inboxSql);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +39,7 @@
         </div>
         
         <div class="user-menu">
+            <a href="lobby.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Find Players</a>
             <a href="leaderboard.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
             <span>Welcome, Player1</span>
             <button class="btn-logout">Logout</button>
@@ -23,6 +47,33 @@
     </nav>
 
     <div class="hero">
+        <?php if ($inboxResult->num_rows > 0): ?>
+        <div class="container" style="margin-bottom: 20px;">
+            <div style="background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; padding: 20px; border-radius: 15px;">
+                <h3 style="color: #e74c3c; margin-bottom: 15px;"><i class="fas fa-envelope"></i> Game Challenges</h3>
+                
+                <?php while($row = $inboxResult->fetch_assoc()): ?>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: white; font-size: 1.1rem;">
+                            <strong><?php echo htmlspecialchars($row['challenger']); ?></strong> challenges you to <strong><?php echo htmlspecialchars($row['display_name']); ?></strong>!
+                        </span>
+                        
+                        <div>
+                            <a href="includes/handle_challenge.php?action=accept&id=<?php echo $row['match_id']; ?>&game=<?php echo $row['game_slug']; ?>" 
+                            style="background: #2ecc71; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-right: 10px; font-weight: bold;">
+                            Accept
+                            </a>
+
+                            <a href="includes/handle_challenge.php?action=decline&id=<?php echo $row['match_id']; ?>" 
+                            style="background: #e74c3c; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                            Decline
+                            </a>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+            </div>
+        </div>
+        <?php endif; ?>
         <h1>Game Library</h1>
         <p>Select a game to start playing</p>
     </div>
