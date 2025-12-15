@@ -139,7 +139,7 @@ $turnResult = $conn->query($turnSql);
                 <div class="card-content">
                     <h3>Memory</h3>
                     <p>Test your brain power. Match the cards.</p>
-                    <a href="./Memory Card/MemCard.html" class="btn-play">Play Now</a>
+                    <a href="./Memory Card/MemCard.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 

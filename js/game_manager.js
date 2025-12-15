@@ -7,18 +7,17 @@ const GameManager = {
     },
     timer: null,
     timeLeft: 0,
-    gameActive: false, // <--- NEW CONTROL FLAG
+    gameActive: false, 
 
     init: function(slug, type, scoreId = 'score') {
         this.config.gameSlug = slug;
         this.config.gameType = type;
         this.config.scoreElementId = scoreId;
         
-        // 1. Install Input Blockers (The Security Gate)
+        // 1. Install Input Blockers
         this.blockInputs();
 
         const matchId = this.getMatchId();
-        // Create overlay (which blocks the view and starts the flow)
         this.createOverlay(matchId);
     },
 
@@ -27,22 +26,20 @@ const GameManager = {
         return params.get('match_id');
     },
 
-    // --- NEW: GLOBAL INPUT BLOCKER ---
-    // --- UPDATED: GLOBAL INPUT BLOCKER ---
+    // GLOBAL INPUT BLOCKER
     blockInputs: function() {
         const trap = (e) => {
             if (!this.gameActive) {
-                // FIX: Allow interaction if the target is inside the Overlay (e.g., the Start Button)
+                // Allow interactions inside the Overlay (like the Start Button)
                 if (e.target && e.target.closest && e.target.closest('#gm-overlay')) {
                     return; 
                 }
 
-                e.stopImmediatePropagation(); // Stop game from hearing it
-                e.preventDefault();           // Stop default browser action
+                e.stopImmediatePropagation(); 
+                e.preventDefault();           
             }
         };
 
-        // Capture phase (true) ensures we catch it BEFORE the game does
         window.addEventListener('keydown', trap, true);
         window.addEventListener('keyup', trap, true);
         window.addEventListener('mousedown', trap, true);
@@ -59,7 +56,7 @@ const GameManager = {
             background: rgba(0,0,0,0.95); z-index: 99999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; font-family: 'Courier New', sans-serif;
-            pointer-events: auto; /* Catch clicks */
+            pointer-events: auto; 
         `;
         
         const titleText = matchId ? "RANKED MATCH" : "PRACTICE";
@@ -85,10 +82,9 @@ const GameManager = {
     },
 
     startGame: function() {
-        this.gameActive = true; // <--- OPEN THE GATES
+        this.gameActive = true; 
         this.timeLeft = this.config.duration;
         
-        // 8-Ball and TicTacShow don't use the timer, so we check type
         if (this.config.gameType === 'score') {
             this.startTimer();
         }
@@ -124,9 +120,8 @@ const GameManager = {
 
     endGame: function() {
         clearInterval(this.timer);
-        this.gameActive = false; // <--- CLOSE THE GATES (Freezes game)
+        this.gameActive = false; 
 
-        // Game Over Screen
         const cover = document.createElement('div');
         cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:white;flex-direction:column;";
         
@@ -141,7 +136,6 @@ const GameManager = {
     },
 
     submitScore: function(scoreVal) {
-        // [Existing logic - No changes needed here]
         const matchId = this.getMatchId();
         let payload = {
             game: this.config.gameSlug,
@@ -150,9 +144,6 @@ const GameManager = {
             match_id: matchId
         };
 
-        // Pass-through for custom submissions (like Sudoku/PacMan overwrites)
-        // If the game file overwrote submitScore, this function won't be called anyway.
-        // But for standard timer games:
         fetch('../submit_score.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -164,7 +155,6 @@ const GameManager = {
         });
     },
 
-    // Standard Helper
     loadMatchState: function(callback) {
         const matchId = this.getMatchId();
         if(!matchId) { callback(null); return; }
@@ -178,3 +168,6 @@ const GameManager = {
             .catch(() => callback(null));
     }
 };
+
+// --- CRITICAL FIX FOR MEMORY CARD ---
+window.GameManager = GameManager;

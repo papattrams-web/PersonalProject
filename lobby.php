@@ -137,6 +137,7 @@ if (!isset($_SESSION['user_id'])) {
                                             <option value="pacman">PacMan</option>
                                             <option value="sudoku">Sudoku</option>
                                             <option value="8ball">8 Ball</option>
+                                            <option value="memory">Memory Card</option>
                                             <option value="tictactoe">TicTacShow</option>
                                             <option value="war">War</option>
                                         </select>

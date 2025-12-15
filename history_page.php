@@ -41,7 +41,7 @@ function getGameUrl($slug, $match_id) {
         case '2048': $path = "2048/2048.html"; break;
         case 'pacman': $path = "PacMan/PacMan.php"; break;
         case 'sudoku': $path = "Sudoku/sudoku.php"; break;
-        case 'memory': $path = "Memory Card/MemCard.html"; break;
+        case 'memory': $path = "Memory Card/MemCard.php"; break;
         case '8ball': $path = "8ball/8ball.php"; break;
         case 'tictactoe': $path = "TicTacShow/TicTacShow.php"; break;
         case 'war': $path = "Cards/cards.html"; break;
