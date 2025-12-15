@@ -1,9 +1,8 @@
 <?php
 session_start();
 
-// Define paths relative to a 1-level deep folder
-$login_path = "../Login/login.php";
-$home_path = "../homepage.php";
+$login_path = "./Login/login.php";
+$home_path = "./homepage.php";
 
 if (isset($_SESSION['user_id'])) {
     // Session exists? Go to Dashboard
@@ -14,4 +13,3 @@ if (isset($_SESSION['user_id'])) {
 }
 exit();
 ?>
-

@@ -44,7 +44,7 @@ function getGameUrl($slug, $match_id) {
         case 'memory': $path = "Memory Card/MemCard.php"; break;
         case '8ball': $path = "8ball/8ball.php"; break;
         case 'tictactoe': $path = "TicTacShow/TicTacShow.php"; break;
-        case 'war': $path = "Cards/cards.html"; break;
+        case 'war': $path = "Cards/cards.php"; break;
         default: return "#";
     }
     return $path . "?match_id=" . $match_id;

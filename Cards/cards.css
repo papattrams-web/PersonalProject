@@ -134,3 +134,30 @@ body {
     from { transform: translateY(-20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* Add to Cards/cards.css */
+
+.hand-container {
+    grid-column: 1 / -1; /* Span full width */
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    height: 140px; /* Force height for cards */
+}
+
+/* Make hand cards interactive */
+.hand-container .card {
+    height: 120px;
+    width: 85px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 2rem; /* Smaller font for hand cards */
+    border: 2px solid #2ecc71;
+}
+
+.hand-container .card:hover {
+    transform: translateY(-15px) scale(1.1);
+    box-shadow: 0 0 15px #2ecc71;
+    z-index: 10;
+}

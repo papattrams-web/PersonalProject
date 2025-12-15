@@ -23,7 +23,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             case 'memory': $url = "../Memory Card/MemCard.php"; break; // Check folder name spaces
             case '8ball': $url = "../8ball/8ball.php"; break;
             case 'tictactoe': $url = "../TicTacShow/TicTacShow.php"; break;
-            case 'war': $url = "../Cards/cards.html"; break;
+            case 'war': $url = "../Cards/cards.php"; break;
             default: $url = "../homepage.php";
         }
 

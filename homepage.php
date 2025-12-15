@@ -150,7 +150,7 @@ $turnResult = $conn->query($turnSql);
                 <div class="card-content">
                     <h3>War</h3>
                     <p>Battle of the decks. High card wins the round.</p>
-                    <a href="Cards/cards.html" class="btn-play">Play Now</a>
+                    <a href="Cards/cards.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 
