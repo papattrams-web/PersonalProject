@@ -1,5 +1,5 @@
 <?php
-// submit_score.php - FINAL ROBUST VERSION (High Score Logic Applied)
+// submit_score.php - FINAL FIXED VERSION
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 header('Content-Type: application/json');
@@ -26,6 +26,9 @@ try {
     if (!$gRes || $gRes->num_rows == 0) throw new Exception("Game not found.");
     $game_id = $gRes->fetch_assoc()['id'];
 
+    $response = ['status' => 'success'];
+    $match_completed_now = false; // Flag to trigger tournament check
+
     // 3. MATCH LOGIC
     if ($match_id) {
         $mRes = $conn->query("SELECT * FROM matches WHERE id = '$match_id'");
@@ -35,17 +38,12 @@ try {
         // --- A. TURN BASED (Tic Tac Show / 8 Ball Updates) ---
         if ($type === 'turn_update') {
             $board_state = $conn->real_escape_string($data['board_state']);
-            // Toggle Turn
             $newStatus = ($user_id == $matchData['player1_id']) ? 'waiting_p2' : 'waiting_p1';
-            
             $conn->query("UPDATE matches SET board_state = '$board_state', status = '$newStatus' WHERE id = '$match_id'");
-            echo json_encode(['status' => 'success']);
-            exit(); 
         }
 
         // --- B. SCORE BASED (Sudoku / PacMan / 2048) ---
-        if ($type === 'score') {
-            // 1. Handle Board State (For Sudoku P1 -> P2 fairness)
+        else if ($type === 'score') {
             $extra_sql = "";
             if (isset($data['board_state'])) {
                 $b_state = $conn->real_escape_string($data['board_state']);
@@ -55,49 +53,34 @@ try {
             $is_p1 = ($user_id == $matchData['player1_id']);
             $my_score_col = $is_p1 ? "player1_score" : "player2_score";
 
-            // LOGIC: Are we the FIRST or SECOND to finish?
-            // If status is 'active' or 'pending', we are FIRST.
+            // FIRST TO FINISH
             if ($matchData['status'] == 'active' || $matchData['status'] == 'pending') {
                 $newStatus = $is_p1 ? 'waiting_p2' : 'waiting_p1';
-                
                 $conn->query("UPDATE matches SET $my_score_col = $score, status = '$newStatus' $extra_sql WHERE id = '$match_id'");
             } 
-            // If status is 'waiting_...', the OTHER player already finished. We are SECOND.
+            // SECOND TO FINISH (Game Over)
             else {
-                // Get opponent's score from DB
                 $p1_score = $is_p1 ? $score : $matchData['player1_score'];
                 $p2_score = $is_p1 ? $matchData['player2_score'] : $score;
                 
-                // Determine Winner
-                $winner_id = "NULL"; // Default to Draw
+                $winner_id = "NULL";
                 if ($p1_score > $p2_score) $winner_id = $matchData['player1_id'];
                 elseif ($p2_score > $p1_score) $winner_id = $matchData['player2_id'];
                 
-                // Update Match: Mark Completed
                 $conn->query("UPDATE matches SET $my_score_col = $score, winner_id = $winner_id, status = 'completed' WHERE id = '$match_id'");
+                $match_completed_now = true;
 
-                // Update Leaderboard (Highest Score Logic)
+                // Update Leaderboard
                 if ($winner_id !== "NULL") {
-                    // Determine the numeric score of the winner
                     $w_score = ($winner_id == $matchData['player1_id']) ? $p1_score : $p2_score;
-
-                    // Insert, or update ONLY if new score is higher than old highscore
-                    $conn->query("INSERT INTO leaderboard (user_id, game_id, highscore) 
-                                  VALUES ('$winner_id', '$game_id', '$w_score') 
-                                  ON DUPLICATE KEY UPDATE highscore = GREATEST(highscore, '$w_score')");
+                    $conn->query("INSERT INTO leaderboard (user_id, game_id, highscore) VALUES ('$winner_id', '$game_id', '$w_score') ON DUPLICATE KEY UPDATE highscore = GREATEST(highscore, '$w_score')");
                 }
             }
-            
-            echo json_encode(['status' => 'success']);
-            exit();
         }
 
-        // --- C. WIN/LOSS BASED (8 Ball / Tic Tac Show End Game) ---
-        // Keeps "Total Wins" logic for these games
-        if ($type === 'win' || $type === 'loss') {
-            // If I sent 'win' (score 1), I win. If 'loss' (score -1), Opponent wins.
+        // --- C. WIN/LOSS BASED (8 Ball / War / Tic Tac Show End Game) ---
+        else if ($type === 'win' || $type === 'loss') {
             $winner_id = "NULL";
-            
             if ($user_id == $matchData['player1_id']) {
                 $winner_id = ($score == 1) ? $matchData['player1_id'] : $matchData['player2_id'];
                 $conn->query("UPDATE matches SET player1_score = $score WHERE id = '$match_id'");
@@ -107,38 +90,25 @@ try {
             }
 
             $conn->query("UPDATE matches SET winner_id = $winner_id, status = 'completed' WHERE id = '$match_id'");
+            $match_completed_now = true;
 
             if ($winner_id !== "NULL") {
-                $conn->query("INSERT INTO leaderboard (user_id, game_id, highscore) VALUES ('$winner_id', '$game_id', 1) 
-                              ON DUPLICATE KEY UPDATE highscore = highscore + 1");
+                $conn->query("INSERT INTO leaderboard (user_id, game_id, highscore) VALUES ('$winner_id', '$game_id', 1) ON DUPLICATE KEY UPDATE highscore = highscore + 1");
             }
-            
-            echo json_encode(['status' => 'success']);
-            exit();
         }
-    }
 
-// ... [Inside submit_score.php, after the query updates are done] ...
+        // --- 4. TOURNAMENT ADVANCEMENT LOGIC (Only runs if a match actually finished) ---
+        if ($match_completed_now && !empty($matchData['tournament_id'])) {
+            $trn_id = $matchData['tournament_id'];
+            $round = $matchData['round'];
+            $response['tournament_id'] = $trn_id; // Tell JS to redirect to Tournament View
 
-    // --- TOURNAMENT ADVANCEMENT LOGIC ---
-    if ($match_id) {
-        // 1. Get Tournament Details
-        $tCheck = $conn->query("SELECT tournament_id, round FROM matches WHERE id = '$match_id'");
-        $tData = $tCheck->fetch_assoc();
-
-        if ($tData && $tData['tournament_id']) {
-            $trn_id = $tData['tournament_id'];
-            $round = $tData['round'];
-
-            // 2. Check if ALL matches in this round are completed
+            // Check if ALL matches in this round are completed
             $pending = $conn->query("SELECT count(*) as c FROM matches WHERE tournament_id = '$trn_id' AND round = '$round' AND status != 'completed'");
             $count = $pending->fetch_assoc()['c'];
 
             if ($count == 0) {
                 // ROUND COMPLETE! GENERATE NEXT ROUND.
-                
-                // Get all winners from this round
-                // We order by ID to keep the bracket structure (Match 1 winner plays Match 2 winner)
                 $winnersSql = "SELECT winner_id FROM matches WHERE tournament_id = '$trn_id' AND round = '$round' ORDER BY id ASC";
                 $wRes = $conn->query($winnersSql);
                 
@@ -147,56 +117,35 @@ try {
                     if ($row['winner_id']) $winners[] = $row['winner_id'];
                 }
 
-                // If only 1 winner remains, Tournament is Over
                 if (count($winners) == 1) {
+                    // Tournament Over
                     $conn->query("UPDATE tournaments SET status = 'completed' WHERE id = '$trn_id'");
                 } 
                 elseif (count($winners) > 1) {
-                    // Create Next Round Matches (Pair them up)
+                    // Create Next Round
                     $next_round = $round + 1;
-                    
-                    // Get Game ID again
-                    $gIdRes = $conn->query("SELECT game_id FROM tournaments WHERE id = '$trn_id'");
-                    $gId = $gIdRes->fetch_assoc()['game_id'];
+                    $gId = $matchData['game_id'];
 
                     for ($i = 0; $i < count($winners); $i += 2) {
                         if (isset($winners[$i+1])) {
                             $p1 = $winners[$i];
                             $p2 = $winners[$i+1];
-                            // Status is 'active' immediately for next round (or 'pending' if you want)
-                            // 'pending' usually safer for turn-based 
-                            $conn->query("INSERT INTO matches (tournament_id, game_id, round, player1_id, player2_id, status) 
-                                          VALUES ('$trn_id', '$gId', '$next_round', '$p1', '$p2', 'pending')");
+                            $conn->query("INSERT INTO matches (tournament_id, game_id, round, player1_id, player2_id, status) VALUES ('$trn_id', '$gId', '$next_round', '$p1', '$p2', 'pending')");
                         }
                     }
                 }
             }
+        } 
+        // If simply a tournament match but not the last one, still redirect to bracket
+        elseif (!empty($matchData['tournament_id'])) {
+             $response['tournament_id'] = $matchData['tournament_id'];
         }
     }
-    // ... [End of Insert] ...
 
-
-    // Fallback
-    echo json_encode(['status' => 'success']);
+    echo json_encode($response);
 
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
-
-// ... [After all logic is done] ...
-
-$response = ['status' => 'success'];
-
-// Check if this was a tournament match so JS can redirect correctly
-$checkT = $conn->query("SELECT tournament_id FROM matches WHERE id = '$match_id'");
-if ($checkT && $checkT->num_rows > 0) {
-    $row = $checkT->fetch_assoc();
-    if ($row['tournament_id']) {
-        $response['tournament_id'] = $row['tournament_id'];
-    }
-}
-
-echo json_encode($response);
-exit();
 ?>
