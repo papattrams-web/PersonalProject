@@ -6,21 +6,67 @@ const length = 4
 const squares = []
 let score = 0
 
-//Creating board
-function createBoard() {
+// [NEW] Fairness Variables
+let initialBoardState = []; 
+let gameStarted = false;
+
+// --- 1. INITIALIZATION & FAIRNESS ---
+window.onload = function() {
+    // Wait for Game Manager to check if we are P1 or P2
+    window.GameManager.loadMatchState(function(response) {
+        if (!response || response.error) {
+            console.log("Local Mode or Error");
+            createBoard(null);
+            return;
+        }
+
+        // CHECK: Is there a board saved? (Are we P2?)
+        if (response.board_state && response.board_state !== "null") {
+            try {
+                let savedData = JSON.parse(response.board_state);
+                console.log("Loading P1's Start State...");
+                createBoard(savedData);
+            } catch (e) {
+                createBoard(null);
+            }
+        } else {
+            // We are P1: Generate fresh
+            console.log("Generating New Game...");
+            createBoard(null);
+        }
+    });
+}
+
+// Updated createBoard to handle Fairness
+function createBoard(loadedState) {
+    // 1. Create the grid squares (Visuals)
     for (let i = 0; i < (length * length); i++) {
         const square = document.createElement("div")
         square.innerHTML = 0
         gridDisplay.appendChild(square)
         squares.push(square)
     }
-    generate()
-    generate()
+
+    // 2. Populate Tiles
+    if (loadedState && loadedState.length > 0) {
+        // PLAYER 2: Load the exact tiles P1 had
+        for(let i=0; i<squares.length; i++) {
+            squares[i].innerHTML = loadedState[i];
+        }
+    } else {
+        // PLAYER 1: Generate Randomly
+        generate();
+        generate();
+        
+        // Capture this state to save later
+        initialBoardState = squares.map(s => parseInt(s.innerHTML));
+    }
+
+    colorTiles();
+    gameStarted = true;
 }
 
-createBoard()
-colorTiles()
-
+// --- CORE GAME LOGIC (UNTOUCHED) ---
 function generate() {
     const randomNum = Math.floor(Math.random() * squares.length)
     if (squares[randomNum].innerHTML == 0) {
@@ -162,8 +208,6 @@ function checkForWin() {
         if (squares[i].innerHTML == 2048) {
             resultDisplay.innerHTML = "You Won!"
             document.removeEventListener("keydown", control)
-            
-            // --- ADDED: Submit Score on Win ---
             setTimeout(() => {
                 window.GameManager.submitScore(score);
             }, 2000);
@@ -202,8 +246,6 @@ function checkForLoss() {
         if (!isMovePossible) {
             resultDisplay.innerHTML = "Damn, You Lost"
             document.removeEventListener("keydown", control)
-            
-            // --- ADDED: Submit Score on Loss ---
             setTimeout(() => {
                 window.GameManager.submitScore(score);
             }, 3000);
@@ -212,7 +254,7 @@ function checkForLoss() {
 }
 
 function control(e) {
-    // --- ADDED: Global Pause Check ---
+    if (!gameStarted) return;
     if (!window.GameManager.gameActive) return;
 
     if (e.key === "ArrowLeft") {
@@ -314,3 +356,71 @@ function colorTiles() {
         }
     }
 }
+
+// --- 3. SUBMISSION OVERRIDE (MODAL & REDIRECT) ---
+window.GameManager.submitScore = function(scoreVal) {
+    this.gameActive = false;
+    const matchId = this.getMatchId();
+    
+    // Create "Game Over" Popup
+    let cover = document.getElementById('gm-game-over-modal');
+    if (!cover) {
+        cover = document.createElement('div');
+        cover.id = 'gm-game-over-modal';
+        // Matches the 2048 theme colors (Beige/Brown)
+        cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(238, 228, 218, 0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:#776e65;flex-direction:column;font-family:sans-serif;";
+        
+        cover.innerHTML = `
+            <h1 style="font-size:3rem; margin-bottom:10px;">GAME OVER</h1>
+            <h2 style="font-size:2rem; margin-bottom:30px; color:#6c5ce7;">Score: ${scoreVal}</h2>
+            <div id="gm-status-msg" style="color:#776e65; margin-bottom:20px; font-size:1.2rem;">Saving results...</div>
+            <button id="gm-continue-btn" style="display:none; padding:15px 30px; font-size:1.5rem; background:#8f7a66; color:white; border:none; border-radius:3px; cursor:pointer;">CONTINUE</button>
+        `;
+        document.body.appendChild(cover);
+        
+        document.getElementById('gm-continue-btn').addEventListener('click', () => {
+            if (this.redirectUrl) window.location.href = this.redirectUrl;
+            else window.location.href = '../history_page.php';
+        });
+    }
+
+    // Payload
+    let payload = {
+        game: this.config.gameSlug,
+        score: scoreVal,
+        type: this.config.gameType,
+        match_id: matchId
+    };
+
+    // If P1 (Start State exists), save it for P2
+    if (initialBoardState && initialBoardState.length > 0) {
+        payload.board_state = JSON.stringify(initialBoardState);
+    }
+
+    // Send
+    fetch('../submit_score.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        const statusMsg = document.getElementById('gm-status-msg');
+        const btn = document.getElementById('gm-continue-btn');
+        
+        if(statusMsg && btn) {
+            statusMsg.innerText = "Score Saved!";
+            btn.style.display = "block";
+            
+            if (data.tournament_id) {
+                this.redirectUrl = '../tournament/view.php?id=' + data.tournament_id;
+            } else {
+                this.redirectUrl = '../history_page.php';
+            }
+        }
+    })
+    .catch(err => {
+        const statusMsg = document.getElementById('gm-status-msg');
+        if(statusMsg) statusMsg.innerText = "Error Saving Score.";
+    });
+};

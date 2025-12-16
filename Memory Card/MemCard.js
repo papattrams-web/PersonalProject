@@ -202,10 +202,38 @@ function flipAll() {
 }
 
 // --- 5. SUBMISSION ---
+// --- 5. OVERRIDE SUBMISSION ---
 window.GameManager.submitScore = function(scoreVal) {
-    clearInterval(shuffleTimer); // Ensure timer stops on manual submit
+    // 1. Stop the Chaos Timer immediately
+    clearInterval(shuffleTimer); 
+    this.gameActive = false;
+
     const matchId = this.getMatchId();
     
+    // 2. Create and Show "Game Over" Popup
+    let cover = document.getElementById('gm-game-over-modal');
+    if (!cover) {
+        cover = document.createElement('div');
+        cover.id = 'gm-game-over-modal';
+        // Dark overlay with centered text
+        cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:white;flex-direction:column;font-family:'Comic Neue', cursive;";
+        
+        cover.innerHTML = `
+            <h1 style="font-size:3rem; margin-bottom:10px; color:#ff7979;">ALL PAIRS FOUND!</h1>
+            <h2 style="font-size:2rem; margin-bottom:30px; color:#badc58;">Score: ${scoreVal}</h2>
+            <div id="gm-status-msg" style="color:#aaa; margin-bottom:20px; font-size:1.2rem;">Saving results...</div>
+            <button id="gm-continue-btn" style="display:none; padding:15px 30px; font-size:1.5rem; background:#ff7979; color:white; border:none; border-radius:10px; cursor:pointer; box-shadow: 0 5px 0 #eb4d4b;">CONTINUE &rarr;</button>
+        `;
+        document.body.appendChild(cover);
+        
+        // Setup listener for when button appears
+        document.getElementById('gm-continue-btn').addEventListener('click', () => {
+            if (this.redirectUrl) window.location.href = this.redirectUrl;
+            else window.location.href = '../history_page.php';
+        });
+    }
+
+    // 3. Prepare Data
     let payload = {
         game: this.config.gameSlug,
         score: scoreVal,
@@ -213,10 +241,12 @@ window.GameManager.submitScore = function(scoreVal) {
         match_id: matchId
     };
 
+    // Attach Board State (P1 only)
     if (boardStateForSave && boardStateForSave.length > 0) {
         payload.board_state = JSON.stringify(boardStateForSave);
     }
 
+    // 4. Send to Server
     fetch('../submit_score.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,10 +254,29 @@ window.GameManager.submitScore = function(scoreVal) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.tournament_id) {
-            window.location.href = '../tournament/view.php?id=' + data.tournament_id;
-        } else {
-            window.location.href = '../history_page.php';
+        // 5. Update UI on Success
+        const statusMsg = document.getElementById('gm-status-msg');
+        const btn = document.getElementById('gm-continue-btn');
+        
+        if(statusMsg && btn) {
+            statusMsg.innerText = "Saved Successfully!";
+            statusMsg.style.color = "#badc58"; // Green-ish
+            btn.style.display = "block"; // Show button now
+            
+            // Store the correct redirect URL
+            if (data.tournament_id) {
+                this.redirectUrl = '../tournament/view.php?id=' + data.tournament_id;
+            } else {
+                this.redirectUrl = '../history_page.php';
+            }
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        const statusMsg = document.getElementById('gm-status-msg');
+        if(statusMsg) {
+            statusMsg.innerText = "Error Saving Score. Check Connection.";
+            statusMsg.style.color = "red";
         }
     });
 };
