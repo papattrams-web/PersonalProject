@@ -47,12 +47,24 @@ CREATE TABLE leaderboard (
 -- 4. TOURNAMENTS TABLE
 CREATE TABLE tournaments (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(10) UNIQUE,
     name VARCHAR(100),
     game_id INT NOT NULL,
     created_by INT NOT NULL,
     status ENUM('open', 'active', 'completed') DEFAULT 'open',
+    master_board_state LONGTEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (game_id) REFERENCES games(id)
+);
+
+-- Tournament participants
+CREATE TABLE tournament_participants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tournament_id INT NOT NULL,
+    user_id INT NOT NULL,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- 5. MATCHES TABLE
