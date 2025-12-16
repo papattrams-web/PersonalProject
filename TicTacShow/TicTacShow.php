@@ -23,22 +23,26 @@ if ($match_id === 0) { header("Location: ../lobby.php?msg=select_rival"); exit()
         <h1>Tic Tac Show</h1>
         
         <div class="scoreboard">
-            <span id="score-p1" style="color:#2ecc71;">P1: 0</span>
-            <span>-</span>
-            <span id="score-p2" style="color:#e74c3c;">P2: 0</span>
+            <span id="score-p1" style="color:#00d2ff;">P1 (X): 0</span>
+            <span style="margin:0 10px;">-</span>
+            <span id="score-p2" style="color:#e74c3c;">P2 (O): 0</span>
         </div>
 
-        <div class="status-msg" id="status-msg">Loading...</div>
+        <div class="instruction-box" id="instruction-box">
+            Loading...
+        </div>
+
+        <div class="status-msg" id="status-msg"></div>
 
         <div class="board" id="board">
             </div>
         
-        <button id="play" style="display:none;">CONFIRM MOVES</button>
-        
-        <div style="font-size:0.8rem; color:#aaa; margin-top:10px;">
-            <span style="color:#2ecc71">■</span> Hide Position &nbsp;&nbsp; 
-            <span style="color:#e74c3c">■</span> Attack Position
+        <div class="tool-selector" id="tool-selector" style="display:none;">
+            <button class="tool-btn" id="btn-x" onclick="selectTool('X')">X</button>
+            <button class="tool-btn" id="btn-o" onclick="selectTool('O')">O</button>
         </div>
+
+        <button id="confirm-btn" style="display:none;">CONFIRM MOVE</button>
     </div>
 
     <script src="../js/game_manager.js"></script>

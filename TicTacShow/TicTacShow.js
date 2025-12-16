@@ -1,67 +1,107 @@
 const boardEl = document.getElementById("board");
-const playBtn = document.getElementById("play");
+const confirmBtn = document.getElementById("confirm-btn"); // Matches the new PHP ID
 const statusMsg = document.getElementById("status-msg");
+const instructionBox = document.getElementById("instruction-box");
+const toolSelector = document.getElementById("tool-selector");
+const btnX = document.getElementById("btn-x");
+const btnO = document.getElementById("btn-o");
 const scoreP1El = document.getElementById("score-p1");
 const scoreP2El = document.getElementById("score-p2");
 
 let tiles = [];
 let myRole = null; // 'p1' or 'p2'
-let mySelection = { hide: null, guess: null };
+let activeTool = null; // 'X' or 'O'
 
-// STATE SCHEMA
+// Current Turn Selection
+let mySelection = { 
+    hideIndex: null, 
+    guessIndex: null 
+};
+
+// GLOBAL STATE
 let gameState = {
     round: 1,
     scores: { p1: 0, p2: 0 },
-    p1_move: null, // { hide: 2, guess: 5 }
+    p1_move: null, 
     p2_move: null
 };
 
 // --- 1. INITIALIZATION ---
-GameManager.init('tictactoe', 'win'); 
+// Ensure GameManager is loaded before this script runs
+if (typeof GameManager !== 'undefined') {
+    GameManager.init('tictactoe', 'win'); 
 
-GameManager.loadMatchState(function(response) {
-    if (!response || response.error) return;
+    GameManager.loadMatchState(function(response) {
+        if (!response || response.error) {
+            if(instructionBox) instructionBox.innerText = "Error: Match not found.";
+            return;
+        }
 
-    // Determine Role
-    if (MY_USER_ID == response.player1_id) myRole = 'p1';
-    else if (MY_USER_ID == response.player2_id) myRole = 'p2';
-    else { statusMsg.innerText = "Spectator Mode"; return; }
+        // Role Assignment
+        if (MY_USER_ID == response.player1_id) myRole = 'p1';
+        else if (MY_USER_ID == response.player2_id) myRole = 'p2';
+        else { 
+            if(instructionBox) instructionBox.innerText = "Spectator Mode"; 
+            return; 
+        }
 
-    // Load State
-    if (response.board_state && response.board_state !== "null") {
-        try { gameState = JSON.parse(response.board_state); } 
-        catch (e) { console.error(e); }
-    }
+        // Load Previous State
+        if (response.board_state && response.board_state !== "null") {
+            try { gameState = JSON.parse(response.board_state); } 
+            catch (e) { console.error("State Error", e); }
+        }
 
-    updateScoreboard();
-    createBoard();
-    checkTurn(response.status);
-});
+        updateScoreboard();
+        createBoard();
+        checkTurn();
+    });
+} else {
+    console.error("GameManager not found!");
+}
 
-// --- 2. GAME LOGIC ---
-function checkTurn(dbStatus) {
-    // Has round finished? (Both moves present)
-    if (gameState.p1_move && gameState.p2_move) {
-        resolveRound(); // Calculate who won the round
-        return;
-    }
-
-    // Is it my turn to input?
+// --- 2. LOGIC & UI ---
+function checkTurn() {
     let myMoveField = myRole + "_move";
+    
+    // Have I moved yet?
     if (gameState[myMoveField] !== null) {
-        // I already moved, waiting for opponent
-        statusMsg.innerText = "Waiting for opponent...";
-        playBtn.style.display = "none";
+        // I moved, waiting for opponent
+        instructionBox.innerHTML = "Move Submitted!<br>Waiting for opponent to play...";
+        instructionBox.style.borderLeftColor = "#f1c40f";
+        toolSelector.style.display = "none";
+        confirmBtn.style.display = "none";
+        
         renderLockedBoard(gameState[myMoveField]);
-    } else {
-        // I need to move
-        // Note: In simultaneous play, "waiting_p1" just means DB is open. 
-        // We allow move if my slot is null.
-        statusMsg.innerText = "Select: 1 Hide (Green) & 1 Attack (Red)";
-        playBtn.style.display = "inline-block";
-        playBtn.innerText = "CONFIRM MOVE";
+        
+        // Simple Poll to check for opponent move
+        setTimeout(() => location.reload(), 5000); 
+    } 
+    else {
+        // My turn to move
+        let myChar = (myRole === 'p1') ? 'X' : 'O';
+        let oppChar = (myRole === 'p1') ? 'O' : 'X';
+        
+        instructionBox.innerHTML = `Place <b style="color:#00d2ff">${myChar}</b> to HIDE.<br>Place <b style="color:#e74c3c">${oppChar}</b> to GUESS opponent's hiding spot.`;
+        instructionBox.style.borderLeftColor = "#00d2ff";
+        
+        toolSelector.style.display = "flex";
+        confirmBtn.style.display = "inline-block";
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = "CONFIRM MOVE";
+        
+        // Auto-select my character tool first
+        selectTool(myChar); 
         enableInput();
     }
+}
+
+function selectTool(tool) {
+    activeTool = tool;
+    if(btnX) btnX.classList.remove("active");
+    if(btnO) btnO.classList.remove("active");
+    
+    if (tool === 'X' && btnX) btnX.classList.add("active");
+    if (tool === 'O' && btnO) btnO.classList.add("active");
 }
 
 // --- 3. INPUT HANDLING ---
@@ -79,156 +119,172 @@ function createBoard() {
 
 function enableInput() {
     tiles.forEach((tile, index) => {
-        tile.onclick = () => {
-            // Logic: 
-            // 1. If clicked 'hide', deselect it.
-            // 2. If clicked 'guess', deselect it.
-            // 3. If empty:
-            //    - If no hide set, set hide.
-            //    - If hide set but no guess, set guess.
-            //    - If both set, replace guess.
-            
-            if (mySelection.hide === index) mySelection.hide = null;
-            else if (mySelection.guess === index) mySelection.guess = null;
-            else {
-                if (mySelection.hide === null) mySelection.hide = index;
-                else mySelection.guess = index;
-            }
-            renderSelection();
-        };
+        tile.onclick = () => handleTileClick(index);
     });
     
-    playBtn.onclick = submitMove;
+    // FIX: Ensure button exists before adding listener
+    if(confirmBtn) {
+        confirmBtn.onclick = submitMove;
+    }
+}
+
+function handleTileClick(index) {
+    let myChar = (myRole === 'p1') ? 'X' : 'O';
+    
+    if (activeTool === myChar) {
+        // Hiding Logic
+        if (mySelection.hideIndex === index) {
+            mySelection.hideIndex = null; 
+        } else {
+            if (mySelection.guessIndex === index) mySelection.guessIndex = null;
+            mySelection.hideIndex = index;
+        }
+    } else {
+        // Guessing Logic
+        if (mySelection.guessIndex === index) {
+            mySelection.guessIndex = null; 
+        } else {
+            if (mySelection.hideIndex === index) mySelection.hideIndex = null;
+            mySelection.guessIndex = index;
+        }
+    }
+    renderSelection();
 }
 
 function renderSelection() {
-    tiles.forEach(t => t.className = "tile"); // Reset
-    if (mySelection.hide !== null) tiles[mySelection.hide].classList.add("my-hide");
-    if (mySelection.guess !== null) tiles[mySelection.guess].classList.add("my-guess");
+    tiles.forEach(t => {
+        t.innerText = "";
+        t.classList.remove("mark-x", "mark-o");
+    });
+
+    if (mySelection.hideIndex !== null) {
+        let char = (myRole === 'p1') ? 'X' : 'O';
+        let cls = (myRole === 'p1') ? 'mark-x' : 'mark-o';
+        tiles[mySelection.hideIndex].innerText = char;
+        tiles[mySelection.hideIndex].classList.add(cls);
+    }
+
+    if (mySelection.guessIndex !== null) {
+        let char = (myRole === 'p1') ? 'O' : 'X';
+        let cls = (myRole === 'p1') ? 'mark-o' : 'mark-x';
+        tiles[mySelection.guessIndex].innerText = char;
+        tiles[mySelection.guessIndex].classList.add(cls);
+    }
 }
 
 function renderLockedBoard(move) {
-    tiles.forEach(t => {
-        t.className = "tile";
-        t.onclick = null; // Disable click
-    });
-    if (move.hide !== null) {
-        tiles[move.hide].classList.add("my-hide");
-        tiles[move.hide].innerText = "H";
+    let myChar = (myRole === 'p1') ? 'X' : 'O';
+    let oppChar = (myRole === 'p1') ? 'O' : 'X';
+
+    if (move.hideIndex !== null) {
+        tiles[move.hideIndex].innerText = myChar;
+        tiles[move.hideIndex].classList.add(myChar === 'X' ? 'mark-x' : 'mark-o');
     }
-    if (move.guess !== null) {
-        tiles[move.guess].classList.add("my-guess");
-        tiles[move.guess].innerText = "A";
+    if (move.guessIndex !== null) {
+        tiles[move.guessIndex].innerText = oppChar;
+        tiles[move.guessIndex].classList.add(oppChar === 'X' ? 'mark-x' : 'mark-o');
     }
 }
 
 // --- 4. SUBMISSION ---
 function submitMove() {
-    if (mySelection.hide === null || mySelection.guess === null) {
-        alert("You must pick both a Hiding spot and an Attack spot!");
+    if (mySelection.hideIndex === null || mySelection.guessIndex === null) {
+        alert("Incomplete! Place ONE 'X' and ONE 'O' on the board.");
         return;
     }
+
+    confirmBtn.innerText = "Submitting...";
+    confirmBtn.disabled = true;
 
     // Update Local State
     gameState[myRole + "_move"] = mySelection;
 
-    // Send to DB
-    // We send 'turn_update'. Logic:
-    // If I am the second one to submit, I will technically just save.
-    // BUT, the next reload (or immediate logic) needs to resolve.
-    // To make it instant, let's resolve LOCALLY if we have both, then save the CLEANED state.
-    
     // Check if opponent moved
     let oppRole = (myRole === 'p1') ? 'p2' : 'p1';
     
-    // If opponent already moved (it's in gameState), we can resolve NOW.
-    if (gameState[oppRole + "_move"]) {
-        resolveAndSave(); // I am the second player
+    if (gameState[oppRole + "_move"] !== null) {
+        resolveRoundAndSave(); // I am second
     } else {
-        // I am the first player, just save my wait state
-        saveState("Waiting for " + oppRole + "...");
+        saveState(); // I am first
     }
 }
 
-// --- 5. ROUND RESOLUTION ---
-function resolveAndSave() {
+// --- 5. RESOLUTION ---
+function resolveRoundAndSave() {
     let p1 = gameState.p1_move;
     let p2 = gameState.p2_move;
     
-    // Logic:
-    // P1 Point: P1.guess == P2.hide
-    // P2 Point: P2.guess == P1.hide
-    
-    let p1Hit = (p1.guess === p2.hide);
-    let p2Hit = (p2.guess === p1.hide);
+    // Logic: P1 wins round if P1.guess == P2.hide
+    let p1Win = (p1.guessIndex === p2.hideIndex);
+    let p2Win = (p2.guessIndex === p1.hideIndex);
     
     let msg = "";
-    
-    if (p1Hit && !p2Hit) {
+    if (p1Win && !p2Win) {
         gameState.scores.p1++;
-        msg = "P1 Hit P2! (P1 Round Win)";
-    } else if (p2Hit && !p1Hit) {
+        msg = "P1 guessed correctly! (Point P1)";
+    } else if (p2Win && !p1Win) {
         gameState.scores.p2++;
-        msg = "P2 Hit P1! (P2 Round Win)";
-    } else if (p1Hit && p2Hit) {
-        msg = "Double Hit! (Draw Round)";
+        msg = "P2 guessed correctly! (Point P2)";
+    } else if (p1Win && p2Win) {
+        msg = "Both guessed correctly! (Draw Round)";
     } else {
-        msg = "Both Missed! (Draw Round)";
+        msg = "Both missed! (Draw Round)";
     }
     
     alert("Round Result:\n" + msg);
     
-    // Check Win Condition (First to 2)
     if (gameState.scores.p1 >= 2 || gameState.scores.p2 >= 2) {
         endGameMatch();
-        return;
+        return; 
     }
     
-    // Reset for Next Round
+    // Next Round
     gameState.round++;
     gameState.p1_move = null;
     gameState.p2_move = null;
-    
-    saveState("Starting Round " + gameState.round);
+    saveState();
 }
 
-function saveState(logMsg) {
-    const jsonState = JSON.stringify(gameState);
+function saveState() {
+    const matchId = GameManager.getMatchId();
     
     fetch('../submit_score.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             game: 'tictactoe',
-            type: 'turn_update', // Updates state
-            match_id: GameManager.getMatchId(), // Use global getter
+            type: 'turn_update',
+            match_id: matchId,
             score: 0,
-            board_state: jsonState
+            board_state: JSON.stringify(gameState)
         })
     })
     .then(res => res.json())
     .then(data => {
-        // Reload to update UI
-        window.location.reload();
+        // If tournament, go to bracket. Otherwise, go to history.
+        if(data.tournament_id) {
+            window.location.href = "../tournament/view.php?id=" + data.tournament_id;
+        } else {
+            window.location.href = "../history_page.php";
+        }
+    })
+    .catch(e => {
+        console.error(e);
+        alert("Error saving state");
     });
 }
 
-// --- 6. END GAME ---
 function endGameMatch() {
     let s1 = gameState.scores.p1;
     let s2 = gameState.scores.p2;
-    
-    let myResult = 0; // 1=Win, -1=Loss
+    let myResult = 0; 
     if (myRole === 'p1') myResult = (s1 > s2) ? 1 : -1;
     else myResult = (s2 > s1) ? 1 : -1;
     
-    alert(`GAME OVER! Final Score: ${s1} - ${s2}`);
-    
-    // Submit Final Result
     GameManager.submitScore(myResult);
 }
 
 function updateScoreboard() {
-    scoreP1El.innerText = "P1: " + gameState.scores.p1;
-    scoreP2El.innerText = "P2: " + gameState.scores.p2;
+    if(scoreP1El) scoreP1El.innerText = `P1 (X): ${gameState.scores.p1}`;
+    if(scoreP2El) scoreP2El.innerText = `P2 (O): ${gameState.scores.p2}`;
 }
