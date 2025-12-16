@@ -183,4 +183,20 @@ try {
     http_response_code(500);
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
+
+// ... [After all logic is done] ...
+
+$response = ['status' => 'success'];
+
+// Check if this was a tournament match so JS can redirect correctly
+$checkT = $conn->query("SELECT tournament_id FROM matches WHERE id = '$match_id'");
+if ($checkT && $checkT->num_rows > 0) {
+    $row = $checkT->fetch_assoc();
+    if ($row['tournament_id']) {
+        $response['tournament_id'] = $row['tournament_id'];
+    }
+}
+
+echo json_encode($response);
+exit();
 ?>

@@ -186,6 +186,13 @@ window.GameManager.submitScore = function(scoreVal) {
     })
     .then(res => res.json())
     .then(data => {
-        window.location.href = '../homepage.php';
+            // NEW: Redirect Logic
+        if (data.tournament_id) {
+            // Go back to Tournament Table
+            window.location.href = '../tournament/view.php?id=' + data.tournament_id;
+        } else {
+            // Go to standard Matches History
+            window.location.href = '../history_page.php';
+        }
     });
 };

@@ -46,8 +46,51 @@ $err = isset($_GET['err']) ? $_GET['err'] : '';
 
     <div class="split-container">
         
+        <?php
+            // Fetch tournaments I have joined
+            $myTrnSql = "SELECT t.id, t.name, t.status, g.display_name 
+                         FROM tournament_participants tp 
+                         JOIN tournaments t ON tp.tournament_id = t.id 
+                         JOIN games g ON t.game_id = g.id 
+                         WHERE tp.user_id = '$my_id' 
+                         ORDER BY t.created_at DESC";
+            $myTrnRes = $conn->query($myTrnSql);
+        ?>
+        
+        <?php if ($myTrnRes->num_rows > 0): ?>
+            <div class="card-box" style="width: 100%; max-width: 830px; border-color: var(--accent-color);">
+                <h2>Your Tournaments</h2>
+                <table style="width:100%; text-align:left; border-collapse:collapse;">
+                    <tr style="color:#aaa; border-bottom:1px solid #555;">
+                        <th style="padding:10px;">Game</th>
+                        <th style="padding:10px;">Status</th>
+                        <th style="padding:10px;">Action</th>
+                    </tr>
+                    <?php while($row = $myTrnRes->fetch_assoc()): ?>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <td style="padding:15px; font-weight:bold;"><?php echo htmlspecialchars($row['display_name']); ?></td>
+                            <td style="padding:15px;">
+                                <?php 
+                                    if($row['status'] == 'open') echo '<span style="color:#f1c40f">Lobby Open</span>';
+                                    elseif($row['status'] == 'active') echo '<span style="color:#3498db">In Progress</span>';
+                                    else echo '<span style="color:#2ecc71">Completed</span>';
+                                ?>
+                            </td>
+                            <td style="padding:15px;">
+                                <?php if($row['status'] == 'open'): ?>
+                                    <a href="lobby.php?id=<?php echo $row['id']; ?>" class="btn-sm">Go to Lobby</a>
+                                <?php else: ?>
+                                    <a href="view.php?id=<?php echo $row['id']; ?>" class="btn-sm" style="background:#2ecc71;">View Bracket</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </table>
+            </div>
+        <?php endif; ?>
+
         <div class="card-box">
-            <h2>Create Tournament</h2>
+            <h2>Create New</h2>
             <form action="process.php" method="POST">
                 <input type="hidden" name="action" value="create">
                 
@@ -67,13 +110,11 @@ $err = isset($_GET['err']) ? $_GET['err'] : '';
         </div>
 
         <div class="card-box">
-            <h2>Join Tournament</h2>
+            <h2>Join with Code</h2>
             <form action="process.php" method="POST">
                 <input type="hidden" name="action" value="join">
-                
                 <label style="display:block; text-align:left; margin-bottom:5px;">Enter Code</label>
                 <input type="text" name="code" class="input-code" placeholder="TRN-XXXX" required>
-                
                 <button type="submit" class="btn-primary" style="background:#2ecc71; margin-top:20px;">Join Lobby</button>
             </form>
         </div>

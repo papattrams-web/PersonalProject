@@ -77,15 +77,20 @@ $total_notifications = $turnCount + $requestCount;
         </div>
         
         <div class="user-menu">
-            <a href="lobby.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Find Players</a>
-            <a href="leaderboard.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
+            <a href="tournament/index.php" class="btn-tournament">
+                <i class="fas fa-trophy"></i> Tournament
+            </a>
             
-            <a href="history_page.php" class="nav-link" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">
+            <a href="lobby.php" style="color: red; margin-right: 20px; text-decoration: none; font-weight:bold;">Challenge Players</a>
+            
+            <a href="history_page.php" class="nav-link" style="color:yellow; margin-right: 20px; text-decoration: none; font-weight:bold;">
                 Matches
                 <?php if($total_notifications > 0): ?>
                     <span class="badge"><?php echo $total_notifications; ?></span>
-                <?php endif; ?>
+                    <?php endif; ?>
             </a>
+
+            <a href="leaderboard.php" style="color:green; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
 
             <a href="settings.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Settings</a>
             <a href="logout.php" class="btn-logout" style="text-decoration:none;">Logout</a>

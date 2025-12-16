@@ -31,24 +31,47 @@ if ($action === 'create') {
 }
 
 // --- 2. JOIN TOURNAMENT ---
+// --- 2. JOIN / RE-ENTER TOURNAMENT ---
 elseif ($action === 'join') {
     $code = $conn->real_escape_string($_POST['code']);
     
+    // 1. Find Tournament
     $res = $conn->query("SELECT id, status FROM tournaments WHERE code = '$code'");
-    if ($res->num_rows == 0) { header("Location: index.php?err=Invalid Code"); exit(); }
-    
-    $trn = $res->fetch_assoc();
-    if ($trn['status'] !== 'open') { header("Location: index.php?err=Tournament already started"); exit(); }
-    
-    $trn_id = $trn['id'];
-    
-    // Check if already joined
-    $check = $conn->query("SELECT id FROM tournament_participants WHERE tournament_id = '$trn_id' AND user_id = '$my_id'");
-    if ($check->num_rows == 0) {
-        $conn->query("INSERT INTO tournament_participants (tournament_id, user_id) VALUES ('$trn_id', '$my_id')");
+    if ($res->num_rows == 0) { 
+        header("Location: index.php?err=Invalid Code"); 
+        exit(); 
     }
     
-    header("Location: lobby.php?id=$trn_id");
+    $trn = $res->fetch_assoc();
+    $trn_id = $trn['id'];
+    
+    // 2. Check if I am ALREADY a participant
+    $check = $conn->query("SELECT id FROM tournament_participants WHERE tournament_id = '$trn_id' AND user_id = '$my_id'");
+    $is_participant = ($check->num_rows > 0);
+
+    // 3. Logic:
+    // If I am ALREADY in -> Go straight to the view (or lobby if not started)
+    // If I am NOT in -> Check if open. If closed, reject.
+    
+    if ($is_participant) {
+        if ($trn['status'] == 'open') {
+            header("Location: lobby.php?id=$trn_id");
+        } else {
+            // Active or Completed -> Go to Bracket
+            header("Location: view.php?id=$trn_id");
+        }
+        exit();
+    } else {
+        // New user trying to join
+        if ($trn['status'] !== 'open') {
+            header("Location: index.php?err=Tournament has already started or ended.");
+            exit();
+        }
+        
+        // Add to list
+        $conn->query("INSERT INTO tournament_participants (tournament_id, user_id) VALUES ('$trn_id', '$my_id')");
+        header("Location: lobby.php?id=$trn_id");
+    }
 }
 
 // --- 3. START TOURNAMENT (The Big Logic) ---
@@ -126,4 +149,21 @@ elseif ($action === 'start') {
     $conn->query("UPDATE tournaments SET status = 'active' WHERE id = '$trn_id'");
     header("Location: view.php?id=$trn_id");
 }
+
+// --- 4. MANUALLY END TOURNAMENT (For Leaderboard Games) ---
+elseif ($action === 'end_tournament') {
+    $trn_id = intval($_POST['tournament_id']);
+    
+    // Verify Owner
+    $tRes = $conn->query("SELECT created_by FROM tournaments WHERE id = '$trn_id'");
+    $creator = $tRes->fetch_assoc()['created_by'];
+    
+    if ($creator == $my_id) {
+        $conn->query("UPDATE tournaments SET status = 'completed' WHERE id = '$trn_id'");
+    }
+    
+    header("Location: view.php?id=$trn_id");
+}
+
+
 ?>
