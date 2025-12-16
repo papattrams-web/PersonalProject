@@ -45,7 +45,7 @@ $result = $conn->query($sql);
 function getGameUrl($slug, $match_id) {
     $path = "";
     switch ($slug) {
-        case '2048': $path = "2048/2048.html"; break;
+        case '2048': $path = "2048/2048.php"; break;
         case 'pacman': $path = "PacMan/PacMan.php"; break;
         case 'sudoku': $path = "Sudoku/sudoku.php"; break;
         case 'memory': $path = "Memory Card/MemCard.php"; break;

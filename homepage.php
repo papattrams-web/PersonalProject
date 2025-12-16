@@ -80,7 +80,7 @@ $total_notifications = $turnCount + $requestCount;
             <a href="tournament/index.php" class="btn-tournament">
                 <i class="fas fa-trophy"></i> Tournament
             </a>
-            
+
             <a href="lobby.php" style="color: red; margin-right: 20px; text-decoration: none; font-weight:bold;">Challenge Players</a>
             
             <a href="history_page.php" class="nav-link" style="color:yellow; margin-right: 20px; text-decoration: none; font-weight:bold;">
@@ -123,7 +123,7 @@ $total_notifications = $turnCount + $requestCount;
                 <div class="card-content">
                     <h3>2048</h3>
                     <p>Join the numbers and get to the 2048 tile!</p>
-                    <a href="./2048/2048.html" class="btn-play">Play Now</a>
+                    <a href="./2048/2048.php" class="btn-play">Play Now</a>
                 </div>
             </div>
 

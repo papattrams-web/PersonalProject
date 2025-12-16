@@ -1,26 +1,19 @@
+const gridDisplay = document.querySelector(".grid")
+const scoreDisplay = document.getElementById("score")
+const resultDisplay = document.getElementById("result")
 
-
-const gridDisplay= document.querySelector(".grid")
-const scoreDisplay= document.getElementById("score")
-const resultDisplay= document.getElementById("result")
-
-const length= 4
-
-const squares= []
-
+const length = 4
+const squares = []
 let score = 0
 
 //Creating board
-function createBoard(){
-    for(let i=0; i<(length*length); i++){
-        const square= document.createElement("div")
-        
-        square.innerHTML= 0
-        
+function createBoard() {
+    for (let i = 0; i < (length * length); i++) {
+        const square = document.createElement("div")
+        square.innerHTML = 0
         gridDisplay.appendChild(square)
         squares.push(square)
     }
-
     generate()
     generate()
 }
@@ -28,138 +21,116 @@ function createBoard(){
 createBoard()
 colorTiles()
 
-function generate(){
-    const randomNum= Math.floor(Math.random()*squares.length)
-
-    if(squares[randomNum].innerHTML==0){
-        squares[randomNum].innerHTML=2
-
+function generate() {
+    const randomNum = Math.floor(Math.random() * squares.length)
+    if (squares[randomNum].innerHTML == 0) {
+        squares[randomNum].innerHTML = 2
         checkForLoss()
-    }else generate()                
+    } else generate()
 }
 
-function moveRight(){
-    for(let i=0; i<length*length; i++){
-        if(i%4===0){
-            let sum1= squares[i].innerHTML
-            let sum2= squares[i+1].innerHTML
-            let sum3= squares[i+2].innerHTML
-            let sum4= squares[i+3].innerHTML
+function moveRight() {
+    for (let i = 0; i < length * length; i++) {
+        if (i % 4 === 0) {
+            let sum1 = squares[i].innerHTML
+            let sum2 = squares[i + 1].innerHTML
+            let sum3 = squares[i + 2].innerHTML
+            let sum4 = squares[i + 3].innerHTML
 
-            let row= [parseInt(sum1),parseInt(sum2),parseInt(sum3),parseInt(sum4)] 
-            
-            let filteredRow= row.filter(num=>num)
-            let missing= 4 - filteredRow.length
-            let zeros= Array(missing).fill(0)
-            let newRow= zeros.concat(filteredRow)
+            let row = [parseInt(sum1), parseInt(sum2), parseInt(sum3), parseInt(sum4)]
 
-            console.log(newRow)
+            let filteredRow = row.filter(num => num)
+            let missing = 4 - filteredRow.length
+            let zeros = Array(missing).fill(0)
+            let newRow = zeros.concat(filteredRow)
 
-            squares[i].innerHTML=newRow[0]
-            squares[i+1].innerHTML=newRow[1]
-            squares[i+2].innerHTML=newRow[2]
-            squares[i+3].innerHTML=newRow[3]
-
+            squares[i].innerHTML = newRow[0]
+            squares[i + 1].innerHTML = newRow[1]
+            squares[i + 2].innerHTML = newRow[2]
+            squares[i + 3].innerHTML = newRow[3]
         }
-
     }
 }
 
+function moveLeft() {
+    for (let i = 0; i < length * length; i++) {
+        if (i % 4 === 0) {
+            let sum1 = squares[i].innerHTML
+            let sum2 = squares[i + 1].innerHTML
+            let sum3 = squares[i + 2].innerHTML
+            let sum4 = squares[i + 3].innerHTML
 
-function moveLeft(){
-    for(let i=0; i<length*length; i++){
-        if(i%4===0){
-            let sum1= squares[i].innerHTML
-            let sum2= squares[i+1].innerHTML
-            let sum3= squares[i+2].innerHTML
-            let sum4= squares[i+3].innerHTML
+            let row = [parseInt(sum1), parseInt(sum2), parseInt(sum3), parseInt(sum4)]
 
-            let row= [parseInt(sum1),parseInt(sum2),parseInt(sum3),parseInt(sum4)] 
-            
-            let filteredRow= row.filter(num=>num)
-            let missing= 4 - filteredRow.length
-            let zeros= Array(missing).fill(0)
-            let newRow= filteredRow.concat(zeros)
+            let filteredRow = row.filter(num => num)
+            let missing = 4 - filteredRow.length
+            let zeros = Array(missing).fill(0)
+            let newRow = filteredRow.concat(zeros)
 
-            console.log(newRow)
-
-            squares[i].innerHTML=newRow[0]
-            squares[i+1].innerHTML=newRow[1]
-            squares[i+2].innerHTML=newRow[2]
-            squares[i+3].innerHTML=newRow[3]
-
+            squares[i].innerHTML = newRow[0]
+            squares[i + 1].innerHTML = newRow[1]
+            squares[i + 2].innerHTML = newRow[2]
+            squares[i + 3].innerHTML = newRow[3]
         }
-
     }
 }
 
-function moveUp(){
-    for(let i=0; i<length; i++){
-        if(i%4===i){
-            let sum1= squares[i].innerHTML
-            let sum2= squares[i+length].innerHTML
-            let sum3= squares[i+(length*2)].innerHTML
-            let sum4= squares[i+(length*3)].innerHTML
+function moveUp() {
+    for (let i = 0; i < length; i++) {
+        if (i % 4 === i) {
+            let sum1 = squares[i].innerHTML
+            let sum2 = squares[i + length].innerHTML
+            let sum3 = squares[i + (length * 2)].innerHTML
+            let sum4 = squares[i + (length * 3)].innerHTML
 
-            let column= [parseInt(sum1),parseInt(sum2),parseInt(sum3),parseInt(sum4)] 
-            
-            let filteredColumn= column.filter(num=>num)
-            let missing= 4 - filteredColumn.length
-            let zeros= Array(missing).fill(0)
-            let newColumn= filteredColumn.concat(zeros)
+            let column = [parseInt(sum1), parseInt(sum2), parseInt(sum3), parseInt(sum4)]
 
-            console.log(newColumn)
+            let filteredColumn = column.filter(num => num)
+            let missing = 4 - filteredColumn.length
+            let zeros = Array(missing).fill(0)
+            let newColumn = filteredColumn.concat(zeros)
 
-            squares[i].innerHTML=newColumn[0]
-            squares[i+length].innerHTML=newColumn[1]
-            squares[i+(length*2)].innerHTML=newColumn[2]
-            squares[i+(length*3)].innerHTML=newColumn[3]
-
+            squares[i].innerHTML = newColumn[0]
+            squares[i + length].innerHTML = newColumn[1]
+            squares[i + (length * 2)].innerHTML = newColumn[2]
+            squares[i + (length * 3)].innerHTML = newColumn[3]
         }
-
     }
 }
 
-function moveDown(){
-    for(let i=0; i<length; i++){
-        if(i%4===i){
-            let sum1= squares[i].innerHTML
-            let sum2= squares[i+length].innerHTML
-            let sum3= squares[i+(length*2)].innerHTML
-            let sum4= squares[i+(length*3)].innerHTML
+function moveDown() {
+    for (let i = 0; i < length; i++) {
+        if (i % 4 === i) {
+            let sum1 = squares[i].innerHTML
+            let sum2 = squares[i + length].innerHTML
+            let sum3 = squares[i + (length * 2)].innerHTML
+            let sum4 = squares[i + (length * 3)].innerHTML
 
-            let column= [parseInt(sum1),parseInt(sum2),parseInt(sum3),parseInt(sum4)] 
-            
-            let filteredColumn= column.filter(num=>num)
-            let missing= 4 - filteredColumn.length
-            let zeros= Array(missing).fill(0)
-            let newColumn= zeros.concat(filteredColumn)
+            let column = [parseInt(sum1), parseInt(sum2), parseInt(sum3), parseInt(sum4)]
 
-            console.log(newColumn)
+            let filteredColumn = column.filter(num => num)
+            let missing = 4 - filteredColumn.length
+            let zeros = Array(missing).fill(0)
+            let newColumn = zeros.concat(filteredColumn)
 
-            squares[i].innerHTML=newColumn[0]
-            squares[i+length].innerHTML=newColumn[1]
-            squares[i+(length*2)].innerHTML=newColumn[2]
-            squares[i+(length*3)].innerHTML=newColumn[3]
-
+            squares[i].innerHTML = newColumn[0]
+            squares[i + length].innerHTML = newColumn[1]
+            squares[i + (length * 2)].innerHTML = newColumn[2]
+            squares[i + (length * 3)].innerHTML = newColumn[3]
         }
-
     }
 }
 
-function combineRow(){
-    for (let i = 0; i < 16; i++){
-        // Check if we are NOT at the last column of a row (indices 3, 7, 11, 15)
-        if (i % 4 !== 3) { 
-            // Check if the current square's value equals the next square's value
-            if(squares[i].innerHTML === squares[i+1].innerHTML){
-                let combinedTotal =  parseInt(squares[i].innerHTML) + parseInt(squares[i+1].innerHTML)
-                
-                // Only merge if the tile is not 0 (an empty space)
+function combineRow() {
+    for (let i = 0; i < 16; i++) {
+        if (i % 4 !== 3) {
+            if (squares[i].innerHTML === squares[i + 1].innerHTML) {
+                let combinedTotal = parseInt(squares[i].innerHTML) + parseInt(squares[i + 1].innerHTML)
+
                 if (parseInt(squares[i].innerHTML) !== 0) {
                     squares[i].innerHTML = combinedTotal
-                    squares[i+1].innerHTML = 0
-                    
+                    squares[i + 1].innerHTML = 0
+
                     score += combinedTotal
                     scoreDisplay.innerHTML = score
                 }
@@ -169,17 +140,15 @@ function combineRow(){
     checkForWin()
 }
 
-function combineColumn(){
-    for (let i = 0; i < 12; i++){
-        // Check if the current square's value equals the square below it
-        if(squares[i].innerHTML === squares[i+length].innerHTML){
-            let combinedTotal =  parseInt(squares[i].innerHTML) + parseInt(squares[i+length].innerHTML)
-            
-            // Only merge if the tile is not 0
+function combineColumn() {
+    for (let i = 0; i < 12; i++) {
+        if (squares[i].innerHTML === squares[i + length].innerHTML) {
+            let combinedTotal = parseInt(squares[i].innerHTML) + parseInt(squares[i + length].innerHTML)
+
             if (parseInt(squares[i].innerHTML) !== 0) {
                 squares[i].innerHTML = combinedTotal
-                squares[i+length].innerHTML = 0
-                
+                squares[i + length].innerHTML = 0
+
                 score += combinedTotal
                 scoreDisplay.innerHTML = score
             }
@@ -188,127 +157,119 @@ function combineColumn(){
     checkForWin()
 }
 
-function checkForWin(){
-    for(let i= 0; i<squares.length; i++){
-        if(squares[i].innerHTML===2048){
-            resultDisplay.innerHTML= "You Won!"
-            removeEventListener("keydown", control)
+function checkForWin() {
+    for (let i = 0; i < squares.length; i++) {
+        if (squares[i].innerHTML == 2048) {
+            resultDisplay.innerHTML = "You Won!"
+            document.removeEventListener("keydown", control)
+            
+            // --- ADDED: Submit Score on Win ---
+            setTimeout(() => {
+                window.GameManager.submitScore(score);
+            }, 2000);
         }
     }
 }
 
-function checkForLoss(){
+function checkForLoss() {
     let isBoardFull = true
     let isMovePossible = false
 
-    // Check if the board is full (Condition 1)
-    for(let i = 0; i < squares.length; i++){
-        if(squares[i].innerHTML == 0){ // Comparing to string "0" is fine here
+    for (let i = 0; i < squares.length; i++) {
+        if (squares[i].innerHTML == 0) {
             isBoardFull = false
             break
         }
     }
 
-    // If the board is full, check if any adjacent tiles can be combined (Condition 2)
     if (isBoardFull) {
-        // Check adjacent rows for a match
         for (let i = 0; i < 16; i++) {
-            if (i % 4 !== 3 && squares[i].innerHTML === squares[i+1].innerHTML && parseInt(squares[i].innerHTML) !== 0) {
+            if (i % 4 !== 3 && squares[i].innerHTML === squares[i + 1].innerHTML && parseInt(squares[i].innerHTML) !== 0) {
                 isMovePossible = true
                 break
             }
         }
-        
-        // Check adjacent columns for a match
+
         if (!isMovePossible) {
             for (let i = 0; i < 12; i++) {
-                if (squares[i].innerHTML === squares[i+length].innerHTML && parseInt(squares[i].innerHTML) !== 0) {
+                if (squares[i].innerHTML === squares[i + length].innerHTML && parseInt(squares[i].innerHTML) !== 0) {
                     isMovePossible = true
                     break
                 }
             }
         }
 
-        if(!isMovePossible){
+        if (!isMovePossible) {
             resultDisplay.innerHTML = "Damn, You Lost"
             document.removeEventListener("keydown", control)
-            setTimeout(clear, 3000)
+            
+            // --- ADDED: Submit Score on Loss ---
+            setTimeout(() => {
+                window.GameManager.submitScore(score);
+            }, 3000);
         }
     }
 }
 
-function clear(){
-    clearInterval(timer)
-}
+function control(e) {
+    // --- ADDED: Global Pause Check ---
+    if (!window.GameManager.gameActive) return;
 
-function control(e){
-    if(e.key==="ArrowLeft"){
+    if (e.key === "ArrowLeft") {
         keyLeft()
-    }else if(e.key==="ArrowRight"){
+    } else if (e.key === "ArrowRight") {
         keyRight()
-    }else if(e.key==="ArrowUp"){
+    } else if (e.key === "ArrowUp") {
         keyUp()
-    }else if(e.key==="ArrowDown"){
+    } else if (e.key === "ArrowDown") {
         keyDown()
     }
 }
 
 document.addEventListener("keydown", control)
 
-function keyLeft(){
-    const beforeState = squares.map(s => s.innerHTML).join('') // Save the state before the move
-    
+function keyLeft() {
+    const beforeState = squares.map(s => s.innerHTML).join('')
     moveLeft()
     combineRow()
-    moveLeft() // Slide the newly merged tiles to the end
-    
-    const afterState = squares.map(s => s.innerHTML).join('') // Check the state after the move
-
+    moveLeft()
+    const afterState = squares.map(s => s.innerHTML).join('')
     if (beforeState !== afterState) {
         generate()
         colorTiles()
     }
 }
 
-function keyRight(){
+function keyRight() {
     const beforeState = squares.map(s => s.innerHTML).join('')
-    
     moveRight()
     combineRow()
     moveRight()
-    
     const afterState = squares.map(s => s.innerHTML).join('')
-
     if (beforeState !== afterState) {
         generate()
         colorTiles()
     }
 }
 
-function keyUp(){
+function keyUp() {
     const beforeState = squares.map(s => s.innerHTML).join('')
-    
     moveUp()
     combineColumn()
     moveUp()
-    
     const afterState = squares.map(s => s.innerHTML).join('')
-
     if (beforeState !== afterState) {
         generate()
         colorTiles()
     }
 }
 
-function keyDown(){
+function keyDown() {
     const beforeState = squares.map(s => s.innerHTML).join('')
-    
     moveDown()
     combineColumn()
     moveDown()
-    
     const afterState = squares.map(s => s.innerHTML).join('')
-
     if (beforeState !== afterState) {
         generate()
         colorTiles()
@@ -319,63 +280,37 @@ function colorTiles() {
     for (let i = 0; i < squares.length; i++) {
         let num = parseInt(squares[i].innerHTML);
         
-        // Default text style (White text with a subtle shadow for better readability)
         squares[i].style.color = "white"; 
         squares[i].style.textShadow = "0px 1px 1px rgba(0,0,0,0.3)"; 
 
         if (num === 0) {
-            squares[i].style.backgroundColor = "#cdc1b4"; // Matches grid background
-            squares[i].style.color = "transparent";       // Hide the 0
+            squares[i].style.backgroundColor = "#cdc1b4"; 
+            squares[i].style.color = "transparent";
             squares[i].style.textShadow = "none";
         } 
-        else if (num === 2) {
-            squares[i].style.backgroundColor = "#6c5ce7"; // Indigo (Modern)
-            // 2 and 4 usually look better with dark text on light backgrounds, 
-            // but for Indigo/Blue, white text works if the color is deep enough.
-        }
-        else if (num === 4) {
-            squares[i].style.backgroundColor = "#0984e3"; // Blue (Bright & Clear)
-        } 
-        else if (num === 8) {
-            squares[i].style.backgroundColor = "#00b894"; // Green (Teal-ish Green)
-        }
+        else if (num === 2) squares[i].style.backgroundColor = "#6c5ce7";
+        else if (num === 4) squares[i].style.backgroundColor = "#0984e3";
+        else if (num === 8) squares[i].style.backgroundColor = "#00b894";
         else if (num === 16) {
-            squares[i].style.backgroundColor = "#fdcb6e"; // Yellow (Mustard)
-            squares[i].style.color = "#2d3436";           // Dark text for contrast on yellow
+            squares[i].style.backgroundColor = "#fdcb6e";
+            squares[i].style.color = "#2d3436";
             squares[i].style.textShadow = "none";
         }
-        else if (num === 32) {
-            squares[i].style.backgroundColor = "#e17055"; // Orange (Burnt Orange)
-        }
-        else if (num === 64) {
-            squares[i].style.backgroundColor = "#d63031"; // Red/Purple mix
-        }
-        else if (num === 128) {
-            squares[i].style.backgroundColor = "#636e72"; // Grey (Slate)
-        }
-        else if (num === 256) {
-            squares[i].style.backgroundColor = "#00cec9"; // Teal (Aqua)
-        }
-        else if (num === 512) {
-            squares[i].style.backgroundColor = "#e84393"; // Pink (Dark Raspberry)
-        }
-        else if (num === 1024) {
-            squares[i].style.backgroundColor = "#2d3436"; // Black (Charcoal)
-        }
+        else if (num === 32) squares[i].style.backgroundColor = "#e17055";
+        else if (num === 64) squares[i].style.backgroundColor = "#d63031";
+        else if (num === 128) squares[i].style.backgroundColor = "#636e72";
+        else if (num === 256) squares[i].style.backgroundColor = "#00cec9";
+        else if (num === 512) squares[i].style.backgroundColor = "#e84393";
+        else if (num === 1024) squares[i].style.backgroundColor = "#2d3436";
         else if (num === 2048) {
-            squares[i].style.backgroundColor = "#fab1a0"; // Gold/Special Color
-            squares[i].style.boxShadow = "0 0 10px #fab1a0"; // Glowing effect for the win tile
-            squares[i].style.color = "#2d3436"; 
+            squares[i].style.backgroundColor = "#fab1a0";
+            squares[i].style.boxShadow = "0 0 10px #fab1a0";
+            squares[i].style.color = "#2d3436";
             squares[i].style.textShadow = "none";
         }
         else {
-             // Fallback for higher numbers (super dark gold)
              squares[i].style.backgroundColor = "#3c3a32"; 
              squares[i].style.color = "#f9f6f2";
         }
     }
 }
-
-
-
-
