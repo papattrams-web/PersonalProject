@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_SESSION['user_id'])) {
 
         if ($conn->query($sql) === TRUE) {
             // Success: Go back to lobby with a message
-            header("Location: ../lobby.php?msg=sent");
+            header("Location: ../history_page.php?msg=Challenge sent successfully!");
         } else {
             echo "Error: " . $conn->error;
         }

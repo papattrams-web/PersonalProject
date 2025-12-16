@@ -8,15 +8,13 @@ const GameManager = {
     timer: null,
     timeLeft: 0,
     gameActive: false, 
+    redirectUrl: null, // Store where we should go
 
     init: function(slug, type, scoreId = 'score') {
         this.config.gameSlug = slug;
         this.config.gameType = type;
         this.config.scoreElementId = scoreId;
-        
-        // 1. Install Input Blockers
         this.blockInputs();
-
         const matchId = this.getMatchId();
         this.createOverlay(matchId);
     },
@@ -26,55 +24,33 @@ const GameManager = {
         return params.get('match_id');
     },
 
-    // GLOBAL INPUT BLOCKER
     blockInputs: function() {
         const trap = (e) => {
             if (!this.gameActive) {
-                // Allow interactions inside the Overlay (like the Start Button)
-                if (e.target && e.target.closest && e.target.closest('#gm-overlay')) {
-                    return; 
-                }
-
+                if (e.target && e.target.closest && e.target.closest('#gm-overlay')) return; 
                 e.stopImmediatePropagation(); 
                 e.preventDefault();           
             }
         };
-
-        window.addEventListener('keydown', trap, true);
-        window.addEventListener('keyup', trap, true);
-        window.addEventListener('mousedown', trap, true);
-        window.addEventListener('mouseup', trap, true);
-        window.addEventListener('touchstart', trap, true);
-        window.addEventListener('click', trap, true);
+        ['keydown','keyup','mousedown','mouseup','touchstart','click'].forEach(evt => 
+            window.addEventListener(evt, trap, true)
+        );
     },
 
     createOverlay: function(matchId) {
         const overlay = document.createElement('div');
         overlay.id = 'gm-overlay';
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 99999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; font-family: 'Courier New', sans-serif;
-            pointer-events: auto; 
-        `;
+        overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Courier New', sans-serif; pointer-events: auto;`;
         
         const titleText = matchId ? "RANKED MATCH" : "PRACTICE";
-        const subText = matchId ? "Beat your opponent's score." : "Play for high score.";
+        const subText = matchId ? "Beat your opponent." : "Play for high score.";
         
         overlay.innerHTML = `
             <h1 style="font-size: 3rem; margin-bottom: 20px; text-transform:uppercase;">${titleText}</h1>
             <p style="margin-bottom: 30px; font-size: 1.2rem;">${subText}</p>
-            <button id="gm-start-btn" style="
-                padding: 15px 40px; font-size: 1.5rem; cursor: pointer;
-                background: #2ecc71; color: white; border: none; border-radius: 5px;
-                font-weight: bold; text-transform: uppercase;
-                box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
-            ">START GAME</button>
+            <button id="gm-start-btn" style="padding: 15px 40px; font-size: 1.5rem; cursor: pointer; background: #2ecc71; color: white; border: none; border-radius: 5px; font-weight: bold; text-transform: uppercase; box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);">START GAME</button>
         `;
-        
         document.body.appendChild(overlay);
-        
         document.getElementById('gm-start-btn').addEventListener('click', () => {
             overlay.remove();
             this.startGame();
@@ -84,31 +60,20 @@ const GameManager = {
     startGame: function() {
         this.gameActive = true; 
         this.timeLeft = this.config.duration;
-        
-        if (this.config.gameType === 'score') {
-            this.startTimer();
-        }
+        if (this.config.gameType === 'score') this.startTimer();
     },
 
     startTimer: function() {
         const timerDisplay = document.createElement('div');
         timerDisplay.id = 'gm-timer';
-        timerDisplay.style.cssText = `
-            position: fixed; top: 10px; right: 10px;
-            background: rgba(0,0,0,0.8); color: #2ecc71; padding: 10px 20px;
-            font-size: 1.5rem; font-weight: bold; border: 2px solid #2ecc71; 
-            border-radius: 10px; z-index: 1000; font-family: monospace;
-        `;
+        timerDisplay.style.cssText = `position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #2ecc71; padding: 10px 20px; font-size: 1.5rem; font-weight: bold; border: 2px solid #2ecc71; border-radius: 10px; z-index: 1000; font-family: monospace;`;
         timerDisplay.innerText = this.formatTime(this.timeLeft);
         document.body.appendChild(timerDisplay);
 
         this.timer = setInterval(() => {
             this.timeLeft--;
             timerDisplay.innerText = this.formatTime(this.timeLeft);
-
-            if (this.timeLeft <= 0) {
-                this.endGame();
-            }
+            if (this.timeLeft <= 0) this.endGame();
         }, 1000);
     },
 
@@ -121,22 +86,42 @@ const GameManager = {
     endGame: function() {
         clearInterval(this.timer);
         this.gameActive = false; 
-
-        const cover = document.createElement('div');
-        cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:white;flex-direction:column;";
         
         let finalScore = 0;
         const scoreEl = document.getElementById(this.config.scoreElementId);
         if(scoreEl) finalScore = parseInt(scoreEl.innerText) || 0; 
 
-        cover.innerHTML = `<h1>TIME UP!</h1><h2>Score: ${finalScore}</h2><h3 style='color:#aaa'>Saving...</h3>`;
-        document.body.appendChild(cover);
-
+        // We call submitScore, which handles creating the UI
         this.submitScore(finalScore);
     },
 
     submitScore: function(scoreVal) {
         const matchId = this.getMatchId();
+        
+        // 1. Ensure Overlay Exists (Even if game called submitScore directly without endGame)
+        let cover = document.getElementById('gm-game-over-modal');
+        if (!cover) {
+            cover = document.createElement('div');
+            cover.id = 'gm-game-over-modal';
+            cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:white;flex-direction:column;font-family:'Courier New', monospace;";
+            
+            let displayScore = (this.config.gameType === 'win') ? (scoreVal == 1 ? "WIN" : "LOSE") : scoreVal;
+
+            cover.innerHTML = `
+                <h1 style="font-size:3rem; margin-bottom:10px;">GAME OVER</h1>
+                <h2 style="font-size:2rem; margin-bottom:30px; color:#f1c40f;">Result: ${displayScore}</h2>
+                <div id="gm-status-msg" style="color:#aaa; margin-bottom:20px; font-size:1.2rem;">Saving results...</div>
+                <button id="gm-continue-btn" style="display:none; padding:15px 30px; font-size:1.2rem; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer;">CONTINUE</button>
+            `;
+            document.body.appendChild(cover);
+            
+            document.getElementById('gm-continue-btn').addEventListener('click', () => {
+                if (this.redirectUrl) window.location.href = this.redirectUrl;
+                else window.location.href = '../history_page.php';
+            });
+        }
+
+        // 2. Submit Data
         let payload = {
             game: this.config.gameSlug,
             score: scoreVal,
@@ -151,13 +136,28 @@ const GameManager = {
         })
         .then(res => res.json())
         .then(data => {
-            // NEW: Redirect Logic
-            if (data.tournament_id) {
-                // Go back to Tournament Table
-                window.location.href = '../tournament/view.php?id=' + data.tournament_id;
-            } else {
-                // Go to standard Matches History
-                window.location.href = '../history_page.php';
+            // 3. Update UI to show Success
+            const statusMsg = document.getElementById('gm-status-msg');
+            const btn = document.getElementById('gm-continue-btn');
+            
+            if(statusMsg && btn) {
+                statusMsg.innerText = "Saved Successfully!";
+                statusMsg.style.color = "#2ecc71";
+                btn.style.display = "block"; // Show button now
+                
+                // Decide where the button goes
+                if (data.tournament_id) {
+                    this.redirectUrl = '../tournament/view.php?id=' + data.tournament_id;
+                } else {
+                    this.redirectUrl = '../history_page.php';
+                }
+            }
+        })
+        .catch(err => {
+            const statusMsg = document.getElementById('gm-status-msg');
+            if(statusMsg) {
+                statusMsg.innerText = "Error Saving Score. Check Connection.";
+                statusMsg.style.color = "#e74c3c";
             }
         });
     },
@@ -176,5 +176,4 @@ const GameManager = {
     }
 };
 
-// --- CRITICAL FIX FOR MEMORY CARD ---
 window.GameManager = GameManager;

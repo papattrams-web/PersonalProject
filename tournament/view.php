@@ -36,7 +36,7 @@ while($row = $mRes->fetch_assoc()) {
 // Helper for Game URL
 function getGameUrl($slug, $match_id) {
     switch ($slug) {
-        case '2048': return "../2048/2048.html?match_id=$match_id";
+        case '2048': return "../2048/2048.php?match_id=$match_id";
         case 'pacman': return "../PacMan/PacMan.php?match_id=$match_id";
         case 'sudoku': return "../Sudoku/sudoku.php?match_id=$match_id";
         case 'memory': return "../Memory Card/MemCard.php?match_id=$match_id";
@@ -77,6 +77,7 @@ function getGameUrl($slug, $match_id) {
         th { color: #aaa; }
         tr:hover { background: rgba(255,255,255,0.05); }
         
+        /* The Crown */
         .crown-icon { color: #ffd700; margin-right: 5px; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
     </style>
 </head>
