@@ -88,6 +88,7 @@ if (!isset($_SESSION['user_id'])) {
             <span class="logo-text">GEEKERZ</span>
         </div>
         <div class="user-menu">
+            <a href="history_page.php" class="btn-logout" style="text-decoration:none; margin-right:10px;">Matches</a>    
             <a href="homepage.php" class="btn-logout" style="text-decoration:none;">Back to Dashboard</a>
         </div>
     </nav>

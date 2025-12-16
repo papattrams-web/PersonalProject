@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;700&display=swap');
 
-/* 1. Global Reset & Fonts */
 *, *::after, *::before {
     box-sizing: border-box;
     margin: 0;
@@ -8,40 +7,41 @@
 }
 
 body {
-    background-color: #1e3a28; /* Deep Poker Table Green */
-    /* Subtle felt texture pattern */
+    background-color: #1e3a28;
     background-image: radial-gradient(#264a33 20%, transparent 20%),
                       radial-gradient(#264a33 20%, transparent 20%);
     background-size: 20px 20px;
     background-position: 0 0, 10px 10px;
     
     font-family: 'Roboto', sans-serif;
-    color: #f1c40f; /* Gold text */
+    color: #f1c40f;
     height: 100vh;
     overflow: hidden;
     
+    /* Updated Grid */
     display: grid;
     grid-template-columns: 120px 120px; 
-    grid-template-rows: 1fr 100px 1fr;
-    gap: 20px;
+    grid-template-rows: 1fr 80px 1fr 140px; /* Added row for hand */
+    gap: 15px;
     justify-content: center;
     align-content: center;
     
     grid-template-areas:
         "comp-deck comp-slot"
         "status    status"
-        "play-deck play-slot";
+        "play-deck play-slot"
+        "hand      hand";
 }
 
-/* 2. Assigning HTML Elements */
+/* Grid Assignments */
 .computer-deck { grid-area: comp-deck; }
 .computer-card-slot { grid-area: comp-slot; }
 .text { grid-area: status; }
 .player-deck { grid-area: play-deck; }
 .player-card-slot { grid-area: play-slot; }
+.hand-container { grid-area: hand; }
 
-
-/* 3. Deck Styling */
+/* Decks */
 .deck {
     height: 160px;
     width: 110px;
@@ -49,60 +49,55 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    
-    /* Casino Card Back Pattern */
-    background-color: #b71540; /* Deep Red */
+    cursor: default;
+    background-color: #b71540;
     background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1) 75%, transparent 75%, transparent);
     background-size: 10px 10px;
-    
     border: 4px solid #fff;
     box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-.deck:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 25px rgba(0,0,0,0.4);
-}
+.computer-deck { border-color: #e74c3c; } 
+.player-deck { border-color: #2ecc71; } /* Green border for player */  
 
-/* Distinct borders */
-.computer-deck { border: 2px solid #e74c3c; } 
-.player-deck { border: 2px solid #2ecc71; }   
-
-
-/* 4. Card Slot Styling */
+/* Card Slots (Center) */
 .card-slot {
     height: 160px;
     width: 110px;
-    border: 2px dashed rgba(241, 196, 15, 0.3); /* Faint gold dash */
+    border: 2px dashed rgba(241, 196, 15, 0.3);
     border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0,0,0,0.1); /* Darken the slot slightly */
-    position: relative; 
+    background-color: rgba(0,0,0,0.1);
 }
 
-/* 5. Status Text */
+/* Status Text */
 .text {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Playfair Display', serif; /* Elegant font */
-    font-size: 2.5rem;
-    color: #f1c40f; /* Gold */
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: #f1c40f;
     text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-/* 6. The Revealed Card */
+/* Hand Container */
+.hand-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Playing Cards */
 .card {
-    height: 100%;
-    width: 100%;
+    height: 160px; /* Match slot size */
+    width: 110px;
     border-radius: 8px;
     background-color: #fff;
     display: flex;
@@ -112,52 +107,53 @@ body {
     position: relative;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     font-family: 'Playfair Display', serif;
-    
-    animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    user-select: none;
 }
 
 .card.black { color: #2d3436; }
 .card.red { color: #c0392b; }
 
-.card::before, 
-.card::after {
+.card::before, .card::after {
     content: attr(data-value);
     font-size: 1rem;
     position: absolute;
     font-family: 'Roboto', sans-serif;
 }
-
 .card::before { top: 5px; left: 5px; }
 .card::after { bottom: 5px; right: 5px; transform: rotate(180deg); }
 
-@keyframes slideIn {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* Add to Cards/cards.css */
-
-.hand-container {
-    grid-column: 1 / -1; /* Span full width */
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-    height: 140px; /* Force height for cards */
-}
-
-/* Make hand cards interactive */
+/* Hand Specifics */
 .hand-container .card {
-    height: 120px;
+    height: 120px; /* Smaller in hand */
     width: 85px;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    font-size: 2rem; /* Smaller font for hand cards */
     border: 2px solid #2ecc71;
+    font-size: 2.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .hand-container .card:hover {
-    transform: translateY(-15px) scale(1.1);
+    transform: translateY(-15px);
     box-shadow: 0 0 15px #2ecc71;
     z-index: 10;
+}
+
+/* Add this to cards.css */
+
+.timer {
+    position: absolute;
+    top: 50%;                        /* Moves to vertical center */
+    left: 50%;                       /* Moves to horizontal center */
+    transform: translate(-50%, -50%); /* Centers it perfectly */
+    
+    font-size: 3rem;
+    font-family: 'Playfair Display', serif;
+    color: #f1c40f;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px 20px;
+    border-radius: 10px;
+    border: 2px solid #f1c40f;
+    z-index: 50;
+    pointer-events: none; /* Ensures you can click through it if needed */
 }

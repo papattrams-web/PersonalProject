@@ -35,8 +35,8 @@
             <span class="logo-text">GEEKERZ</span>
         </div>
         <div class="user-menu">
+            <a href="history_page.php" class="btn-logout" style="text-decoration:none; margin-right:10px;">Matches</a>
             <a href="homepage.php" class="btn-logout" style="text-decoration:none; margin-right:10px;">Dashboard</a>
-            <a href="Login/login.php" class="btn-logout">Logout</a>
         </div>
     </nav>
 
@@ -52,7 +52,7 @@
             <button class="game-btn" onclick="loadLeaderboard('sudoku', this)">Sudoku</button>
             <button class="game-btn" onclick="loadLeaderboard('memory', this)">Memory</button>
             <button class="game-btn" onclick="loadLeaderboard('8ball', this)">8 Ball</button>
-            <button class="game-btn" onclick="loadLeaderboard('tictactoe', this)">TicTacToe</button>
+            <button class="game-btn" onclick="loadLeaderboard('tictactoe', this)">TicTacShow</button>
             <button class="game-btn" onclick="loadLeaderboard('war', this)">War</button>
         </div>
 
@@ -102,6 +102,6 @@
                 .catch(e => console.error(e));
         }
     </script>
-    
+
 </body>
 </html>

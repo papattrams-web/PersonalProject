@@ -101,6 +101,7 @@ function getGameUrl($slug, $match_id) {
 
     <div class="hero">
         <h1>Matches & Requests</h1>
+        <div class="user-menu"><a href="lobby.php" class="btn-logout" style="text-decoration:none;">Challenge User</a></div>
     </div>
 
     <div class="history-container">
