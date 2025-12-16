@@ -118,6 +118,64 @@ try {
         }
     }
 
+// ... [Inside submit_score.php, after the query updates are done] ...
+
+    // --- TOURNAMENT ADVANCEMENT LOGIC ---
+    if ($match_id) {
+        // 1. Get Tournament Details
+        $tCheck = $conn->query("SELECT tournament_id, round FROM matches WHERE id = '$match_id'");
+        $tData = $tCheck->fetch_assoc();
+
+        if ($tData && $tData['tournament_id']) {
+            $trn_id = $tData['tournament_id'];
+            $round = $tData['round'];
+
+            // 2. Check if ALL matches in this round are completed
+            $pending = $conn->query("SELECT count(*) as c FROM matches WHERE tournament_id = '$trn_id' AND round = '$round' AND status != 'completed'");
+            $count = $pending->fetch_assoc()['c'];
+
+            if ($count == 0) {
+                // ROUND COMPLETE! GENERATE NEXT ROUND.
+                
+                // Get all winners from this round
+                // We order by ID to keep the bracket structure (Match 1 winner plays Match 2 winner)
+                $winnersSql = "SELECT winner_id FROM matches WHERE tournament_id = '$trn_id' AND round = '$round' ORDER BY id ASC";
+                $wRes = $conn->query($winnersSql);
+                
+                $winners = [];
+                while($row = $wRes->fetch_assoc()) {
+                    if ($row['winner_id']) $winners[] = $row['winner_id'];
+                }
+
+                // If only 1 winner remains, Tournament is Over
+                if (count($winners) == 1) {
+                    $conn->query("UPDATE tournaments SET status = 'completed' WHERE id = '$trn_id'");
+                } 
+                elseif (count($winners) > 1) {
+                    // Create Next Round Matches (Pair them up)
+                    $next_round = $round + 1;
+                    
+                    // Get Game ID again
+                    $gIdRes = $conn->query("SELECT game_id FROM tournaments WHERE id = '$trn_id'");
+                    $gId = $gIdRes->fetch_assoc()['game_id'];
+
+                    for ($i = 0; $i < count($winners); $i += 2) {
+                        if (isset($winners[$i+1])) {
+                            $p1 = $winners[$i];
+                            $p2 = $winners[$i+1];
+                            // Status is 'active' immediately for next round (or 'pending' if you want)
+                            // 'pending' usually safer for turn-based 
+                            $conn->query("INSERT INTO matches (tournament_id, game_id, round, player1_id, player2_id, status) 
+                                          VALUES ('$trn_id', '$gId', '$next_round', '$p1', '$p2', 'pending')");
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // ... [End of Insert] ...
+
+
     // Fallback
     echo json_encode(['status' => 'success']);
 
