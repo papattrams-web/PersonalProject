@@ -1,21 +1,14 @@
 <?php
 // Determine if we are on localhost or live server
 // Change 'localhost' to your live server IP if needed, but usually this works
-if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1') {
-    // LOCAL CREDENTIALS (XAMPP/WAMP)
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "geekerz_db";
-} else {
-    // LIVE SERVER CREDENTIALS (You get these from your hosting panel)
-    $servername = "localhost"; // Often remains 'localhost' on shared hosting
-    $username = "u123456_geekerz"; // Example format provided by host
-    $password = "StrongPassword123!"; // You create this in cPanel
-    $dbname = "u123456_geekerz_db";
-}
+// We use 'getenv' to pull secret settings from Railway
+$servername = getenv('MYSQLHOST') ?: "localhost"; // Falls back to localhost if not found
+$username = getenv('MYSQLUSER') ?: "root";
+$password = getenv('MYSQLPASSWORD') ?: "";
+$dbname = getenv('MYSQLDATABASE') ?: "geekerz_db";
+$port = getenv('MYSQLPORT') ?: 3306;
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname, $port);
 
 if ($conn->connect_error) {
     // On live sites, don't show specific errors to users (Security)
