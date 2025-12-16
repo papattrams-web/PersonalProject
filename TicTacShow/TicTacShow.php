@@ -1,22 +1,11 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id'])) { header("Location: ../Login/login.php"); exit(); }
 
-// 1. Security Check
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../Login/login.php");
-    exit();
-}
-
-// 2. Capture Data
 $my_user_id = $_SESSION['user_id'];
 $match_id = isset($_GET['match_id']) ? intval($_GET['match_id']) : 0;
 
-// 3. Redirect if no match ID (Prevents "Manual Entry" errors)
-if ($match_id === 0) {
-    // If opened without a match, send them to lobby to find one
-    header("Location: ../lobby.php?msg=select_rival");
-    exit();
-}
+if ($match_id === 0) { header("Location: ../lobby.php?msg=select_rival"); exit(); }
 ?>
 
 <!DOCTYPE html>
@@ -28,20 +17,28 @@ if ($match_id === 0) {
     <link rel="stylesheet" href="TicTacShow.css"> 
 </head>
 <body>
-    <nav style="position:absolute; top:20px; left:20px;">
-        <a href="../homepage.php" style="color:white; text-decoration:none; font-weight:bold;">&larr; Back to Dashboard</a>
-    </nav>
+    <a href="../homepage.php" style="position:absolute; top:20px; left:20px; color:white; text-decoration:none; font-weight:bold;">&larr; Quit</a>
 
     <div class="container">
         <h1>Tic Tac Show</h1>
         
-        <h3 id="status-msg" style="margin-bottom: 10px; color: #00d2ff; min-height: 30px;">Loading Game...</h3>
+        <div class="scoreboard">
+            <span id="score-p1" style="color:#2ecc71;">P1: 0</span>
+            <span>-</span>
+            <span id="score-p2" style="color:#e74c3c;">P2: 0</span>
+        </div>
 
-        <div class="board"></div>
+        <div class="status-msg" id="status-msg">Loading...</div>
+
+        <div class="board" id="board">
+            </div>
         
-        <button id="play" style="display:none;">CONFIRM MOVE</button>
+        <button id="play" style="display:none;">CONFIRM MOVES</button>
         
-        <div class="characters" style="display:none;"></div>
+        <div style="font-size:0.8rem; color:#aaa; margin-top:10px;">
+            <span style="color:#2ecc71">■</span> Hide Position &nbsp;&nbsp; 
+            <span style="color:#e74c3c">■</span> Attack Position
+        </div>
     </div>
 
     <script src="../js/game_manager.js"></script>

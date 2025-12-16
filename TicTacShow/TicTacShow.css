@@ -1,15 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
-/* 1. Global Reset & Fonts */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    /* Modern Gradient Background */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     font-family: 'Montserrat', sans-serif;
     color: #ffffff;
     height: 100vh;
@@ -19,124 +13,94 @@ body {
     overflow: hidden;
 }
 
-/* 2. Main Container */
 .container {
     display: flex;
     flex-direction: column; 
     align-items: center;
-    gap: 2rem; 
+    gap: 1.5rem; 
+    text-align: center;
 }
 
 h1 {
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     text-transform: uppercase;
-    letter-spacing: 5px;
+    letter-spacing: 3px;
     margin: 0;
-    text-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    text-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* 3. The Game Board - Glass Effect */
+.scoreboard {
+    display: flex;
+    gap: 30px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 30px;
+    border-radius: 50px;
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
     grid-template-rows: repeat(3, 100px);
-    gap: 15px; /* Slightly wider gap for the glass look */
-    
-    /* Glassmorphism Styles */
-    background: rgba(255, 255, 255, 0.1); /* See-through white */
-    backdrop-filter: blur(10px); /* Blurs the background behind it */
-    -webkit-backdrop-filter: blur(10px);
-    padding: 20px;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 15px;
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
 }
 
-/* 4. Board Tiles */
 .tile {
-    background-color: rgba(255, 255, 255, 0.05); /* Very subtle tile fill */
+    background-color: rgba(255, 255, 255, 0.05);
     color: #ffffff;
     border-radius: 12px;
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     font-weight: 700;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    user-select: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .tile:hover {
-    transform: translateY(-2px);
-    background-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
 }
 
-/* 5. Character Selector Area */
-div.characters { 
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    width: auto;
-    height: auto;
-    background-color: transparent; 
-    padding: 10px;
+/* SELECTION STYLES */
+.tile.my-hide {
+    background-color: #2ecc71 !important; /* Green for Hide */
+    border-color: #27ae60;
+    box-shadow: 0 0 15px #2ecc71;
 }
 
-/* 6. Character Selector Buttons */
-.characters.tile {
-    width: 70px;
-    height: 70px;
-    font-size: 2rem;
-    background-color: rgba(0, 0, 0, 0.2); /* Darker glass for selectors */
-    color: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%; /* Circular selectors */
+.tile.my-guess {
+    background-color: #e74c3c !important; /* Red for Attack */
+    border-color: #c0392b;
+    box-shadow: 0 0 15px #e74c3c;
 }
 
-/* The active/selected character style */
-.selected {
-    background-color: #00d2ff !important; /* Neon Cyan */
-    color: #2c3e50 !important;
-    border-color: #00d2ff !important;
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(0, 210, 255, 0.6);
-    font-weight: bold;
-}
-
-.immutable {
-    cursor: not-allowed;
-    color: rgba(255, 255, 255, 0.3);
-}
-
-/* Restart Button (Generic button tag) */
-button {
-    margin-top: 10px;
+/* Action Button */
+button#play {
     padding: 15px 40px;
-    background: white;
-    color: #764ba2; /* Matches gradient */
+    background: #f1c40f;
+    color: #000;
     border: none;
-    border-radius: 50px; /* Pill shape */
-    font-size: 1.2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
     font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    user-select: none;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+    transition: 0.2s;
 }
+button#play:hover { transform: translateY(-3px); }
+button#play:disabled { background: #555; color: #888; cursor: not-allowed; transform: none; box-shadow: none; }
 
-button:hover {
-    transform: translateY(-3px);
-    background-color: #ffffff;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-}
-
-button:active {
-    transform: scale(0.95);
+.status-msg {
+    color: #00d2ff;
+    font-weight: bold;
+    min-height: 1.5em;
 }
