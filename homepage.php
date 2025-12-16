@@ -1,5 +1,5 @@
 <?php
-// Ensure this is at the top of homepage.php
+// Ensure this is at the top
 session_start();
 include 'includes/db_connection.php';
 
@@ -10,21 +10,21 @@ if (!isset($_SESSION['user_id'])) {
 
 $my_id = $_SESSION['user_id'];
 
-// 1. Fetch Pending Challenges (Where I am Player 2)
-$inboxSql = "SELECT m.id as match_id, u.username as challenger, g.display_name, g.game_slug
-             FROM matches m
-             JOIN users u ON m.player1_id = u.id
-             JOIN games g ON m.game_id = g.id
-             WHERE m.player2_id = '$my_id' AND m.status = 'pending'";
-$inboxResult = $conn->query($inboxSql);
-
-// 2. Fetch "Your Turn" Matches (Where I am Player 1 and P2 has finished)
-$turnSql = "SELECT m.id as match_id, u.username as opponent, g.display_name, g.game_slug, m.player2_score
-            FROM matches m
-            JOIN users u ON m.player2_id = u.id
-            JOIN games g ON m.game_id = g.id
-            WHERE m.player1_id = '$my_id' AND m.status = 'waiting_p1'";
+// 1. Count "Your Turn" Games
+// (Where I am P1 and status is waiting_p1 OR I am P2 and status is waiting_p2)
+$turnSql = "SELECT COUNT(*) as count FROM matches 
+            WHERE (player1_id = '$my_id' AND status = 'waiting_p1') 
+            OR (player2_id = '$my_id' AND status = 'waiting_p2')";
 $turnResult = $conn->query($turnSql);
+$turnCount = $turnResult->fetch_assoc()['count'];
+
+// 2. Count "Pending Challenges" (Inbox)
+$inboxSql = "SELECT COUNT(*) as count FROM matches 
+             WHERE player2_id = '$my_id' AND status = 'pending'";
+$inboxResult = $conn->query($inboxSql);
+$requestCount = $inboxResult->fetch_assoc()['count'];
+
+$total_notifications = $turnCount + $requestCount;
 ?>
 
 <!DOCTYPE html>
@@ -35,6 +35,38 @@ $turnResult = $conn->query($turnSql);
     <title>Geekerz - Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Notification Badge Style */
+        .nav-link { position: relative; }
+        .badge {
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        
+        /* Alert Banners */
+        .alert-banner {
+            max-width: 800px;
+            margin: 0 auto 15px auto;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .alert-banner:hover { transform: scale(1.02); }
+        .alert-challenges { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: white; }
+        .alert-turn { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: white; }
+    </style>
 </head>
 <body>
 
@@ -45,64 +77,36 @@ $turnResult = $conn->query($turnSql);
         </div>
         
         <div class="user-menu">
-            <a href="lobby.php" style="color:red; margin-right: 20px; text-decoration: none; font-weight:bold;">Challenge Players</a>
-            <a href="history_page.php" style="color:yellow; margin-right: 20px; text-decoration: none; font-weight:bold;">Matches</a>
-            <a href="leaderboard.php" style="color:green; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
-            <a href="settings.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Profile</a>
-            <span style="margin-right: 15px; font-weight: 500;">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
+            <a href="lobby.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Find Players</a>
+            <a href="leaderboard.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Leaderboard</a>
             
-            <a href="logout.php"><button class="btn-logout">Logout</button></a>
+            <a href="history_page.php" class="nav-link" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">
+                Matches
+                <?php if($total_notifications > 0): ?>
+                    <span class="badge"><?php echo $total_notifications; ?></span>
+                <?php endif; ?>
+            </a>
+
+            <a href="settings.php" style="color:white; margin-right: 20px; text-decoration: none; font-weight:bold;">Settings</a>
+            <a href="logout.php" class="btn-logout" style="text-decoration:none;">Logout</a>
         </div>
     </nav>
 
     <div class="hero">
-        <?php if ($inboxResult->num_rows > 0): ?>
-        <div class="container" style="margin-bottom: 20px;">
-            <div style="background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; padding: 20px; border-radius: 15px;">
-                <h3 style="color: #e74c3c; margin-bottom: 15px;"><i class="fas fa-envelope"></i> Game Challenges</h3>
-                
-                <?php while($row = $inboxResult->fetch_assoc()): ?>
-                    <div style="background: rgba(0,0,0,0.3); padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: white; font-size: 1.1rem;">
-                            <strong><?php echo htmlspecialchars($row['challenger']); ?></strong> challenges you to <strong><?php echo htmlspecialchars($row['display_name']); ?></strong>!
-                        </span>
-                        
-                        <div>
-                            <a href="includes/handle_challenge.php?action=accept&id=<?php echo $row['match_id']; ?>&game=<?php echo $row['game_slug']; ?>" 
-                            style="background: #2ecc71; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; margin-right: 10px; font-weight: bold;">
-                            Accept
-                            </a>
+        <?php if ($requestCount > 0): ?>
+            <a href="history_page.php" class="alert-banner alert-challenges">
+                <span><i class="fas fa-envelope"></i> You have <strong><?php echo $requestCount; ?></strong> new challenge request(s).</span>
+                <span style="background:#e74c3c; padding:5px 10px; border-radius:5px; font-size:0.9rem;">View</span>
+            </a>
+        <?php endif; ?>
 
-                            <a href="includes/handle_challenge.php?action=decline&id=<?php echo $row['match_id']; ?>" 
-                            style="background: #e74c3c; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                            Decline
-                            </a>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-            </div>
-        </div>
+        <?php if ($turnCount > 0): ?>
+            <a href="history_page.php" class="alert-banner alert-turn">
+                <span><i class="fas fa-play-circle"></i> It's your turn in <strong><?php echo $turnCount; ?></strong> game(s).</span>
+                <span style="background:#2ecc71; padding:5px 10px; border-radius:5px; font-size:0.9rem;">Play</span>
+            </a>
         <?php endif; ?>
-        <?php if ($turnResult->num_rows > 0): ?>
-        <div class="container" style="margin-bottom: 20px;">
-            <div style="background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; padding: 20px; border-radius: 15px;">
-                <h3 style="color: #2ecc71; margin-bottom: 15px;"><i class="fas fa-play-circle"></i> It's Your Turn!</h3>
-                
-                <?php while($row = $turnResult->fetch_assoc()): ?>
-                    <div style="background: rgba(0,0,0,0.3); padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: white; font-size: 1.1rem;">
-                            <strong><?php echo htmlspecialchars($row['opponent']); ?></strong> scored <strong><?php echo $row['player2_score']; ?></strong> in <?php echo htmlspecialchars($row['display_name']); ?>. Can you beat them?
-                        </span>
-                        
-                        <a href="includes/handle_challenge.php?action=accept&id=<?php echo $row['match_id']; ?>&game=<?php echo $row['game_slug']; ?>" 
-                        style="background: #2ecc71; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                        Play Now
-                        </a>
-                    </div>
-                <?php endwhile; ?>
-            </div>
-        </div>
-        <?php endif; ?>
+
         <h1>Game Library</h1>
         <p>Select a game to start playing</p>
     </div>
