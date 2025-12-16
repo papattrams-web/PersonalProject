@@ -63,5 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             Don't have an account? <a href="../SignUp/signup.php">Sign up</a>
         </div>
     </div>
+
+    <script src="login.js"></script>
 </body>
 </html>
