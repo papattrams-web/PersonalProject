@@ -30,7 +30,7 @@ INSERT INTO games (game_slug, display_name, scoring_type) VALUES
 ('8ball', '8 Ball Pool', 'win'),
 ('8ball_hard', '8 Ball Pool (Hard)', 'win'),
 ('tictactoe', 'Tic Tac Show', 'win'),
-('war', 'War', 'score');
+('war', 'War', 'win');
 
 -- 3. LEADERBOARD TABLE
 CREATE TABLE leaderboard (
