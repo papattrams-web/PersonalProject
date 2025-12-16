@@ -85,13 +85,13 @@
 
     <div class="lb-container">
         <div class="game-selector">
-            <button class="game-btn active" onclick="loadLeaderboard('2048')">2048</button>
-            <button class="game-btn" onclick="loadLeaderboard('pacman')">PacMan</button>
-            <button class="game-btn" onclick="loadLeaderboard('sudoku')">Sudoku</button>
-            <button class="game-btn" onclick="loadLeaderboard('memory')">Memory</button>
-            <button class="game-btn" onclick="loadLeaderboard('8ball')">8 Ball</button>
-            <button class="game-btn" onclick="loadLeaderboard('tictactoe')">TicTacToe</button>
-            <button class="game-btn" onclick="loadLeaderboard('war')">War</button>
+            <button class="game-btn active" onclick="loadLeaderboard('2048', this)">2048</button>
+            <button class="game-btn" onclick="loadLeaderboard('pacman', this)">PacMan</button>
+            <button class="game-btn" onclick="loadLeaderboard('sudoku', this)">Sudoku</button>
+            <button class="game-btn" onclick="loadLeaderboard('memory', this)">Memory</button>
+            <button class="game-btn" onclick="loadLeaderboard('8ball', this)">8 Ball</button>
+            <button class="game-btn" onclick="loadLeaderboard('tictactoe', this)">TicTacToe</button>
+            <button class="game-btn" onclick="loadLeaderboard('war', this)">War</button>
         </div>
 
         <table id="lb-table">
@@ -108,13 +108,15 @@
     </div>
 
     <script>
-        // Load 2048 by default
+        // Load 2048 by default (No button passed, so it won't crash)
         document.addEventListener('DOMContentLoaded', () => loadLeaderboard('2048'));
 
-        function loadLeaderboard(gameSlug) {
-            // 1. Update Buttons
-            document.querySelectorAll('.game-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        function loadLeaderboard(gameSlug, btn) {
+            // 1. Update Buttons (Only if a button was clicked)
+            if (btn) {
+                document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
 
             // 2. Fetch Data
             fetch(`includes/get_leaderboard.php?game=${gameSlug}`)
@@ -151,6 +153,10 @@
                     } else {
                         tbody.innerHTML = `<tr><td colspan="3">Error loading data.</td></tr>`;
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('lb-body').innerHTML = `<tr><td colspan="3">Connection error.</td></tr>`;
                 });
         }
     </script>
