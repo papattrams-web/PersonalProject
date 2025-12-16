@@ -168,7 +168,8 @@ function getGameUrl($slug, $match_id) {
                 <div class="match-row <?php echo $row_class; ?>">
                     <div style="flex: 1;">
                         <h3 style="margin-bottom: 5px;"><?php echo htmlspecialchars($row['display_name']); ?></h3>
-                        <span style="color:#aaa;">vs <?php echo htmlspecialchars($opponent); ?></span>
+                        <span style="color:#aaa;">vs <?php echo htmlspecialchars($opponent); ?></span> <br>
+                        <span style="color:#aaa;">Match ID: <?php echo htmlspecialchars($row['id']); ?></span>
                     </div>
                     <div style="font-weight:bold; font-size:1.2rem; min-width:100px; text-align:center;">
                         <?php if($status == 'completed'): ?>

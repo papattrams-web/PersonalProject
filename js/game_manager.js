@@ -8,7 +8,7 @@ const GameManager = {
     timer: null,
     timeLeft: 0,
     gameActive: false, 
-    redirectUrl: null, // Store where we should go
+    redirectUrl: null,
 
     init: function(slug, type, scoreId = 'score') {
         this.config.gameSlug = slug;
@@ -27,7 +27,12 @@ const GameManager = {
     blockInputs: function() {
         const trap = (e) => {
             if (!this.gameActive) {
-                if (e.target && e.target.closest && e.target.closest('#gm-overlay')) return; 
+                // FIX: Allow interaction if target is inside Start Overlay OR Game Over Modal
+                if (e.target && e.target.closest && 
+                   (e.target.closest('#gm-overlay') || e.target.closest('#gm-game-over-modal'))) {
+                    return; 
+                }
+
                 e.stopImmediatePropagation(); 
                 e.preventDefault();           
             }
@@ -84,25 +89,26 @@ const GameManager = {
     },
 
     endGame: function() {
-        clearInterval(this.timer);
-        this.gameActive = false; 
-        
+        // We let submitScore handle the cleanup
         let finalScore = 0;
         const scoreEl = document.getElementById(this.config.scoreElementId);
         if(scoreEl) finalScore = parseInt(scoreEl.innerText) || 0; 
 
-        // We call submitScore, which handles creating the UI
         this.submitScore(finalScore);
     },
 
     submitScore: function(scoreVal) {
+        // FIX: Stop everything immediately so we don't trigger twice
+        clearInterval(this.timer);
+        this.gameActive = false; 
+
         const matchId = this.getMatchId();
         
-        // 1. Ensure Overlay Exists (Even if game called submitScore directly without endGame)
+        // 1. Ensure Overlay Exists
         let cover = document.getElementById('gm-game-over-modal');
         if (!cover) {
             cover = document.createElement('div');
-            cover.id = 'gm-game-over-modal';
+            cover.id = 'gm-game-over-modal'; // <--- Allowed ID
             cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:white;flex-direction:column;font-family:'Courier New', monospace;";
             
             let displayScore = (this.config.gameType === 'win') ? (scoreVal == 1 ? "WIN" : "LOSE") : scoreVal;
@@ -136,7 +142,6 @@ const GameManager = {
         })
         .then(res => res.json())
         .then(data => {
-            // 3. Update UI to show Success
             const statusMsg = document.getElementById('gm-status-msg');
             const btn = document.getElementById('gm-continue-btn');
             
@@ -145,7 +150,6 @@ const GameManager = {
                 statusMsg.style.color = "#2ecc71";
                 btn.style.display = "block"; // Show button now
                 
-                // Decide where the button goes
                 if (data.tournament_id) {
                     this.redirectUrl = '../tournament/view.php?id=' + data.tournament_id;
                 } else {

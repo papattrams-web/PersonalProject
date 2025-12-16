@@ -65,10 +65,11 @@
     </div>
 
     <script>
+        // Load 2048 by default
         document.addEventListener('DOMContentLoaded', () => loadLeaderboard('2048'));
 
         function loadLeaderboard(gameSlug, btn) {
-            // FIX: Only toggle class if a button was actually clicked
+            // FIX: Only try to toggle classes if a button was actually clicked
             if (btn) {
                 document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -101,5 +102,6 @@
                 .catch(e => console.error(e));
         }
     </script>
+    
 </body>
 </html>
