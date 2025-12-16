@@ -2,23 +2,21 @@ const boardDisplay = document.querySelector("#board");
 const digitsDisplay = document.querySelector("#digits");
 const scoreDisplay = document.getElementById("actual-score");
 
-let squares = [];       // HTML Elements
-let solvedGrid = [];    // The Answer Key [1-9]
-let initialGrid = [];   // The Starting State [0-9] (0 = empty)
+let squares = [];       
+let solvedGrid = [];    
+let initialGrid = [];   
 let numSelected = null;
 let score = 0;
+let errors = 0; // [NEW] Track errors
 
-// --- 1. GAME START LOGIC ---
 // --- 1. GAME START LOGIC ---
 GameManager.loadMatchState(function(response) {
     if (!response || response.error) {
         console.error("Error loading match.");
-        createPuzzleAndRender(); // Fallback
+        createPuzzleAndRender(); 
         return;
     }
 
-    // CHECK: Is there a saved board from the opponent?
-    // We check for both null (object) and "null" (string from DB)
     if (response.board_state && response.board_state !== "null") {
         console.log("Loading Saved Board...");
         try {
@@ -26,37 +24,30 @@ GameManager.loadMatchState(function(response) {
             loadPuzzle(savedData);
         } catch (e) {
             console.error("Error parsing board state:", e);
-            createPuzzleAndRender(); // Fallback if data is corrupt
+            createPuzzleAndRender(); 
         }
     } 
     else {
-        // No board exists yet (I am the first to play)
         console.log("Generating New Board...");
         createPuzzleAndRender();
     }
 });
 
-// --- 2. BOARD GENERATION (Memory First) ---
+// --- 2. BOARD GENERATION ---
 function createPuzzleAndRender() {
-    // 1. Generate Solved Grid in Memory (Fast)
     solvedGrid = generateSolvedGridInMem();
-    
-    // 2. Create Holes (The Puzzle)
-    // Deep copy the solved grid to start
     initialGrid = [...solvedGrid];
     
-    let hints = 35; // How many numbers to KEEP
+    let hints = 35; 
     let holes = 81 - hints;
     
     while (holes > 0) {
         let idx = Math.floor(Math.random() * 81);
         if (initialGrid[idx] !== 0) {
-            initialGrid[idx] = 0; // 0 represents empty
+            initialGrid[idx] = 0; 
             holes--;
         }
     }
-
-    // 3. Render to HTML
     renderBoard();
 }
 
@@ -75,6 +66,9 @@ function renderBoard() {
         square.addEventListener("click", selectTile);
         square.classList.add("tile");
         square.classList.add("box" + boxNum(i));
+        
+        // [NEW] Add ID so we can check solution in selectTile
+        square.id = i; 
         
         let val = initialGrid[i];
         if (val !== 0) {
@@ -103,28 +97,45 @@ function selectTile() {
     if (this.classList.contains("immutable")) return;
     if (!numSelected) return;
 
-    // Visual Update
-    this.innerText = numSelected.innerText;
+    // [NEW] EXTREME MODE LOGIC
+    let idx = parseInt(this.id);
+    let selectedVal = parseInt(numSelected.innerText);
 
-    // Logic Update & Scoring
-    updateScore();
+    // Check against the solution
+    if (solvedGrid[idx] === selectedVal) {
+        // CORRECT: Place the number
+        this.innerText = selectedVal;
+        
+        // Check if this was the last move (Win)
+        // (Optional: You can add win logic here)
+        
+        updateScore();
+    } else {
+        // WRONG: Silent Error
+        errors++;
+        console.log("Errors: " + errors); // Only visible in console
+        
+        // DO NOT change color (Silent)
+        
+        // Check Game Over
+        if (errors >= 3) {
+            alert("GAME OVER! You made 3 errors.");
+            // Submit current score and end game
+            GameManager.submitScore(score);
+        }
+    }
 }
 
 function updateScore() {
     let currentScore = 0;
-    
     for(let i=0; i<81; i++) {
-        // Only count tiles that were initially empty (player moves)
         if (initialGrid[i] === 0) {
             let playerVal = parseInt(squares[i].innerText);
-            
-            // Check if input matches the pre-generated solution
             if (!isNaN(playerVal) && playerVal === solvedGrid[i]) {
                 currentScore++;
             }
         }
     }
-    
     score = currentScore;
     scoreDisplay.innerText = score;
 }
@@ -147,7 +158,7 @@ function populateDigits() {
     }
 }
 
-// --- 5. FAST GENERATOR (Backtracking) ---
+// --- 5. FAST GENERATOR ---
 function generateSolvedGridInMem() {
     let grid = new Array(81).fill(0);
     let values = [1,2,3,4,5,6,7,8,9];
@@ -161,24 +172,22 @@ function generateSolvedGridInMem() {
             if (i === idx) continue;
             let v = grid[i];
             if (v === 0) continue;
-            
-            if (Math.floor(i/9) === r && v === val) return false; // Row
-            if (i%9 === c && v === val) return false; // Col
-            if (boxNum(i) === b && v === val) return false; // Box
+            if (Math.floor(i/9) === r && v === val) return false; 
+            if (i%9 === c && v === val) return false; 
+            if (boxNum(i) === b && v === val) return false; 
         }
         return true;
     }
 
     function fill(idx) {
         if (idx >= 81) return true;
-        
-        values.sort(() => Math.random() - 0.5); // Shuffle
+        values.sort(() => Math.random() - 0.5); 
         
         for (let v of values) {
             if (isValid(idx, v)) {
                 grid[idx] = v;
                 if (fill(idx + 1)) return true;
-                grid[idx] = 0; // Backtrack
+                grid[idx] = 0; 
             }
         }
         return false;
@@ -189,10 +198,32 @@ function generateSolvedGridInMem() {
 }
 
 // --- 6. OVERRIDE SUBMISSION ---
-// We need to send the board layout if we are Player 1
 GameManager.submitScore = function(scoreVal) {
+    clearInterval(this.timer);
+    this.gameActive = false;
+
     const matchId = this.getMatchId();
     
+    let cover = document.getElementById('gm-game-over-modal');
+    if (!cover) {
+        cover = document.createElement('div');
+        cover.id = 'gm-game-over-modal';
+        cover.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;color:white;flex-direction:column;font-family:'Courier New', monospace;";
+        
+        cover.innerHTML = `
+            <h1 style="font-size:3rem; margin-bottom:10px;">GAME OVER</h1>
+            <h2 style="font-size:2rem; margin-bottom:30px; color:#f1c40f;">Score: ${scoreVal}</h2>
+            <div id="gm-status-msg" style="color:#aaa; margin-bottom:20px; font-size:1.2rem;">Saving results...</div>
+            <button id="gm-continue-btn" style="display:none; padding:15px 30px; font-size:1.2rem; background:#2ecc71; color:white; border:none; border-radius:5px; cursor:pointer;">CONTINUE</button>
+        `;
+        document.body.appendChild(cover);
+        
+        document.getElementById('gm-continue-btn').addEventListener('click', () => {
+            if (this.redirectUrl) window.location.href = this.redirectUrl;
+            else window.location.href = '../history_page.php';
+        });
+    }
+
     let payload = {
         game: this.config.gameSlug,
         score: scoreVal,
@@ -200,8 +231,6 @@ GameManager.submitScore = function(scoreVal) {
         match_id: matchId
     };
 
-    // If we have board data (P1 generated it), attach it
-    // We check if we actually have data to send
     if (initialGrid.length > 0 && solvedGrid.length > 0) {
         payload.board_state = JSON.stringify({
             initial: initialGrid,
@@ -216,11 +245,26 @@ GameManager.submitScore = function(scoreVal) {
     })
     .then(res => res.json())
     .then(data => {
-        if(data.status === 'success') {
-            window.location.href = '../homepage.php';
-        } else {
-            console.error("Score Error:", data);
-            alert("Error saving score: " + data.message);
+        const statusMsg = document.getElementById('gm-status-msg');
+        const btn = document.getElementById('gm-continue-btn');
+        
+        if(statusMsg && btn) {
+            statusMsg.innerText = "Saved Successfully!";
+            statusMsg.style.color = "#2ecc71";
+            btn.style.display = "block";
+            
+            if (data.tournament_id) {
+                this.redirectUrl = '../tournament/view.php?id=' + data.tournament_id;
+            } else {
+                this.redirectUrl = '../history_page.php';
+            }
+        }
+    })
+    .catch(err => {
+        const statusMsg = document.getElementById('gm-status-msg');
+        if(statusMsg) {
+            statusMsg.innerText = "Error Saving Score. Check Connection.";
+            statusMsg.style.color = "#e74c3c";
         }
     });
 };

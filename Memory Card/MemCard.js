@@ -6,26 +6,21 @@ const cardSpace = document.querySelector(".card-space");
 let score = 0;
 let cardsArray = [];
 let flippedCards = [];
-let boardStateForSave = []; // Stores the shuffle order for P2
-let gameStarted = false;    // Wait for DB or Start
+let boardStateForSave = []; 
+let gameStarted = false;    
+let shuffleTimer = null; // [NEW] Timer for chaos mode
 
 // --- 1. INITIALIZATION ---
-// Since this is a module, we access the global GameManager via window
 window.onload = function() {
-    
-    // Use GameManager to check if we are P1 or P2
     window.GameManager.loadMatchState(function(response) {
         if (!response || response.error) {
             console.error("Error loading match.");
-            // Fallback for local testing
             populateCardsNew(); 
             startGameFlow();
             return;
         }
 
-        // Check if a board already exists (P2 Logic)
         if (response.board_state && response.board_state !== "null") {
-            console.log("Loading P1's Shuffle...");
             try {
                 let savedData = JSON.parse(response.board_state);
                 reconstructBoard(savedData);
@@ -35,8 +30,6 @@ window.onload = function() {
             }
         } 
         else {
-            // No board exists (P1 Logic)
-            console.log("Generating New Shuffle...");
             populateCardsNew();
         }
 
@@ -45,43 +38,82 @@ window.onload = function() {
 };
 
 function startGameFlow() {
-    // 1. Show all cards (Preview)
+    // 1. Show all cards
     cardsArray.forEach(card => card.classList.add("flipped"));
     
-    // 2. Hide them after 1.5 seconds (Reduced from 5s for better pacing)
+    // 2. Hide them after 1.5s and Start Shuffle Timer
     setTimeout(() => {
         flipAll(); 
-        gameStarted = true; // Allow clicking now
+        gameStarted = true; 
+        
+        // [NEW] Start the Chaos Timer (Shuffle every 15 seconds)
+        startChaosTimer(); 
+        
     }, 1500); 
 }
 
-// --- 2. P1 GENERATION (Using Deck Class) ---
+// [NEW] Chaos Timer Logic
+function startChaosTimer() {
+    // Clear existing if any
+    if (shuffleTimer) clearInterval(shuffleTimer);
+
+    shuffleTimer = setInterval(() => {
+        // Only shuffle if game is active and not won
+        if (gameStarted && window.GameManager.gameActive) {
+            shuffleUnmatched();
+        }
+    }, 15000); // 15 Seconds
+}
+
+function shuffleUnmatched() {
+    // 1. Reset any currently half-flipped cards (punish the player slightly)
+    flippedCards.forEach(card => card.classList.remove("flipped"));
+    flippedCards = [];
+
+    // 2. Find all cards that are NOT matched yet
+    const unmatchedCards = cardsArray.filter(card => !card.classList.contains("matched"));
+
+    if (unmatchedCards.length === 0) return; // Game over or error
+
+    // 3. Visual Feedback (Shake)
+    cardSpace.classList.add("shaking");
+    setTimeout(() => cardSpace.classList.remove("shaking"), 500);
+
+    // 4. Randomize their Order using CSS Grid 'order'
+    unmatchedCards.forEach(card => {
+        // Generate a random order integer between 1 and 100
+        let randomPos = Math.floor(Math.random() * 100);
+        card.style.order = randomPos;
+    });
+    
+    console.log("Chaos Shuffle Triggered!");
+}
+
+// --- 2. P1 GENERATION ---
 function populateCardsNew() {
     const deck = new Deck();
     deck.shuffle();
 
-    // Take top 8 cards to make pairs
+    // 8 Pairs = 16 Cards
     const slicedDeck = new Deck(deck.cards.slice(0,8));
-    
-    // Double them to make 16 cards (8 pairs)
     const playingDeck = new Deck(slicedDeck.cards.concat(slicedDeck.cards));
     playingDeck.shuffle();
 
-    // Render & Capture State
     boardStateForSave = [];
     
     for(let i=0; i<playingDeck.cards.length; i++) {
         let cardObj = playingDeck.cards[i];
-        let cardHTML = cardObj.getHTML(); // Get the div from your Deck class
+        let cardHTML = cardObj.getHTML(); 
 
         setupCardElement(cardHTML);
         
-        // Save the essential data for P2 (Value and Suit/Color classes)
-        // We assume getHTML returns a div with a 'data-value' attribute and classes like 'card red'
+        // [NEW] Set initial CSS order so shuffling works smoothly later
+        cardHTML.style.order = i; 
+
         boardStateForSave.push({
             value: cardHTML.dataset.value,
             classes: cardHTML.className,
-            content: cardHTML.innerHTML // Capture internal suits/numbers if they exist
+            content: cardHTML.innerHTML 
         });
 
         cardSpace.appendChild(cardHTML);
@@ -89,16 +121,19 @@ function populateCardsNew() {
     }
 }
 
-// --- 3. P2 RECONSTRUCTION (Manual DOM) ---
+// --- 3. P2 RECONSTRUCTION ---
 function reconstructBoard(savedData) {
-    boardStateForSave = null; // P2 doesn't need to save it again
+    boardStateForSave = null; 
     
-    savedData.forEach(data => {
+    savedData.forEach((data, index) => {
         const cardDiv = document.createElement('div');
-        cardDiv.className = data.classes; // 'card red', etc.
+        cardDiv.className = data.classes; 
         cardDiv.dataset.value = data.value;
-        cardDiv.innerHTML = data.content; // Inner text/suits
+        cardDiv.innerHTML = data.content; 
         
+        // [NEW] Set initial order
+        cardDiv.style.order = index;
+
         setupCardElement(cardDiv);
         
         cardSpace.appendChild(cardDiv);
@@ -106,18 +141,18 @@ function reconstructBoard(savedData) {
     });
 }
 
-// Helper to attach listeners
 function setupCardElement(cardDiv) {
     cardDiv.addEventListener("click", flipCard);
 }
 
 // --- 4. GAME LOGIC ---
 function flipCard() {
-    // Block input if game hasn't started or paused
     if (!gameStarted) return;
-    if (!window.GameManager.gameActive) return; // Respect Global Pause
+    if (!window.GameManager.gameActive) return; 
+    
+    // Prevent clicking matched cards
+    if (this.classList.contains("matched")) return;
 
-    // Standard Logic
     if (flippedCards.length === 2 || this.classList.contains("flipped")) return;
 
     this.classList.add("flipped");
@@ -137,11 +172,14 @@ function checkForMatch() {
         score++;
         scoreEl.innerText = score;
 
-        // CHECK WIN CONDITION (8 Pairs = 16 Cards)
+        // [NEW] Mark as matched so they don't shuffle
+        card1.classList.add("matched");
+        card2.classList.add("matched");
+
         if (score === 8) {
+            clearInterval(shuffleTimer); // Stop the chaos
             setTimeout(() => {
                 alert("ALL PAIRS FOUND!");
-                // Submit immediately (don't wait for timer)
                 window.GameManager.submitScore(score); 
             }, 500);
         }
@@ -149,8 +187,9 @@ function checkForMatch() {
     } else {
         // NO MATCH
         setTimeout(() => {
-            card1.classList.remove("flipped");
-            card2.classList.remove("flipped");
+            // Only unflip if they haven't been shuffled away during the wait (rare edge case)
+            if (!card1.classList.contains("matched")) card1.classList.remove("flipped");
+            if (!card2.classList.contains("matched")) card2.classList.remove("flipped");
             flippedCards = [];
         }, 1000);
     }
@@ -162,9 +201,9 @@ function flipAll() {
     });
 }
 
-// --- 5. OVERRIDE SUBMISSION ---
-// We attach the board state to the score submission if we are P1
+// --- 5. SUBMISSION ---
 window.GameManager.submitScore = function(scoreVal) {
+    clearInterval(shuffleTimer); // Ensure timer stops on manual submit
     const matchId = this.getMatchId();
     
     let payload = {
@@ -174,7 +213,6 @@ window.GameManager.submitScore = function(scoreVal) {
         match_id: matchId
     };
 
-    // If we have a board state to save (P1), attach it
     if (boardStateForSave && boardStateForSave.length > 0) {
         payload.board_state = JSON.stringify(boardStateForSave);
     }
@@ -186,12 +224,9 @@ window.GameManager.submitScore = function(scoreVal) {
     })
     .then(res => res.json())
     .then(data => {
-            // NEW: Redirect Logic
         if (data.tournament_id) {
-            // Go back to Tournament Table
             window.location.href = '../tournament/view.php?id=' + data.tournament_id;
         } else {
-            // Go to standard Matches History
             window.location.href = '../history_page.php';
         }
     });
