@@ -1,5 +1,7 @@
 ## Project Description
-Geekerz is a platform designed to centralize gaming activities within the Ashesi community, allowing students to participate in tournaments, compete for prizes, and track their performance on public leaderboards. Users can join scheduled competitions or play individual logic-based games such as 2048 and Sudoku, with their scores automatically updated on the leaderboard. This system solves the current problem where gaming tournaments are usually organized informally within friend groups and lack a unified structure. By bringing everything into one accessible platform, it helps create a more vibrant gaming culture on campus, encourages healthy competition, and makes it easier for organizers to run fair and transparent tournaments.
+Geekerz is a platform designed to bring people together through gaming, no matter what device they use. It gives everyone the chance to play iMessage-style multiplayer games without needing an iPhone, breaking down the barriers that usually keep friends apart.
+
+A major problem with current messaging games is that they lack a unified structure for larger groups. Geekerz solves this by introducing group tournaments—a key feature missing from iMessage—allowing users to join scheduled competitions, win prizes, and track their stats on public leaderboards. By putting everything in one place, it makes it easier to run fair tournaments and helps build a more active, inclusive gaming community for everyone.
 
 ## Live Site
 https://personalproject-production-3a56.up.railway.app/Login/login.php
