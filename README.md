@@ -8,3 +8,6 @@ https://personalproject-production-3a56.up.railway.app/Login/login.php
 
 ## YouTube Link
 https://youtu.be/Jlxmv209D2A
+
+## Submissions
+All necessary documentations for grading have been put in a submissions folder.
